@@ -82,11 +82,11 @@ const MOCK_DATA = {
 
 // ─── API: Parse text ─────────────────────────────────────────────────
 app.post('/api/parse-syllabus', async (req, res) => {
-    const { syllabusText, semester } = req.body;
+    const { syllabusText } = req.body;
     if (!syllabusText || syllabusText.trim().length === 0) return res.status(400).json({ error: 'syllabusText is required' });
     try {
-        console.log(`[Server] /api/parse-syllabus — ${syllabusText.length} chars, semester: ${semester || 'any'}`);
-        const result = await parseSyllabus(syllabusText, semester);
+        console.log(`[Server] /api/parse-syllabus — ${syllabusText.length} chars`);
+        const result = await parseSyllabus(syllabusText);
         console.log(`[Server] ✓ AI parse success — ${result.courses.length} courses, ${result.deliverables.length} deliverables`);
         return res.json({ ...result, source: 'ai' });
     } catch (err) {
@@ -98,14 +98,13 @@ app.post('/api/parse-syllabus', async (req, res) => {
 // ─── API: Parse PDF ──────────────────────────────────────────────────
 app.post('/api/parse-syllabus-pdf', upload.single('pdf'), async (req, res) => {
     if (!req.file) return res.status(400).json({ error: 'No PDF uploaded' });
-    const semester = req.body?.semester || '';
     try {
         const pdfData = await pdfParse(req.file.buffer);
         const extractedText = pdfData.text;
         if (!extractedText || extractedText.trim().length === 0) return res.status(422).json({ error: 'Could not extract text' });
-        console.log(`[Server] PDF text: ${extractedText.length} chars, semester: ${semester || 'any'}`);
+        console.log(`[Server] PDF text: ${extractedText.length} chars`);
         try {
-            const result = await parseSyllabus(extractedText, semester);
+            const result = await parseSyllabus(extractedText);
             return res.json({ ...result, source: 'ai', extractedText });
         } catch (aiErr) {
             console.error(`[Server] ✗ PDF AI FAILED: ${aiErr.message}`);

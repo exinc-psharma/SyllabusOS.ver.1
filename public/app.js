@@ -2,7 +2,6 @@
 let currentResponse = null;
 let currentRawText = '';
 let uploadedPdfFile = null;
-let currentSemester = '';
 let creditsChart = null;
 let unitsChart = null;
 
@@ -16,7 +15,6 @@ const rawJsonDisplay = $('raw-json-display');
 const generateTimelineBtn = $('generate-timeline-btn');
 const parseBadge = $('parse-badge');
 const badgeText = $('badge-text');
-const semesterInput = $('semester-input');
 const uploadZone = $('upload-zone');
 const pdfInput = $('pdf-input');
 const pdfFilename = $('pdf-filename');
@@ -74,14 +72,12 @@ function goHome() {
     switchScreen(1);
     setTimeout(() => {
         syllabusInput.value = '';
-        semesterInput.value = '';
         syllabusInput.focus();
         uploadedPdfFile = null;
         pdfFilename.classList.add('hidden');
         pdfInput.value = '';
         currentResponse = null;
         currentRawText = '';
-        currentSemester = '';
     }, 400);
 }
 logoHome.addEventListener('click', goHome);
@@ -119,7 +115,6 @@ generatePlanBtn.addEventListener('click', async () => {
     const text = syllabusInput.value.trim();
     if (!text && !uploadedPdfFile) { showToast('Please paste syllabus text or upload a PDF.', 'error'); return; }
 
-    currentSemester = semesterInput.value.trim();
     const btnText = generatePlanBtn.querySelector('.btn-text');
     const loader = generatePlanBtn.querySelector('.loader');
     btnText.textContent = "Analyzing Syllabus...";
@@ -131,7 +126,6 @@ generatePlanBtn.addEventListener('click', async () => {
         let result;
         if (uploadedPdfFile) {
             const fd = new FormData(); fd.append('pdf', uploadedPdfFile);
-            if (currentSemester) fd.append('semester', currentSemester);
             const res = await fetch('/api/parse-syllabus-pdf', { method: 'POST', body: fd });
             result = await res.json();
             currentRawText = result.extractedText || '[PDF text extracted]';
@@ -139,7 +133,7 @@ generatePlanBtn.addEventListener('click', async () => {
             currentRawText = text;
             const res = await fetch('/api/parse-syllabus', {
                 method: 'POST', headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ syllabusText: text, semester: currentSemester })
+                body: JSON.stringify({ syllabusText: text })
             });
             result = await res.json();
         }
