@@ -1,19 +1,27 @@
 const Groq = require('groq-sdk');
 
-const SYSTEM_PROMPT = `You are an AI academic syllabus parser. Parse the syllabus and extract ALL courses regardless of discipline.
+const SYSTEM_PROMPT = `You are an AI academic syllabus parser.
 
-Courses may belong to ANY branch — CSE, ECE, Mechanical, Civil, Management, Arts, Science, Law, Commerce, Medicine, or any other field.
+Extract ONLY subjects that carry academic credits and will be graded/scored. These are the actual semester subjects a student attends and takes exams for.
 
-Look for patterns such as:
-- Course Code | Course Name | Credits
-- Tables listing subjects under each semester
-- Assignment lists with deadlines and weights
-- Unit breakdowns with topics
-- Evaluation schemes
+DO NOT include:
+- NCC / NSS / Cultural Clubs / Technical Societies
+- EAE / OAE (Emerging Area / Open Area Elective) placeholders — unless a specific subject name is given
+- PCE (Programme Core Elective) placeholders — unless a specific subject name is given
+- Audit courses with 0 credits
+- Summer training / Industrial training (unless it has credits)
+- Activities, community service, or co-curricular items
 
-Do NOT assume specific subjects like DSP or Microelectronics. Extract EXACTLY what appears in the syllabus text.
+ONLY include subjects that have:
+- A specific course name (not just a placeholder like "PCE-1" or "EAE-1")
+- Allocated credits (1 or more)
+- Theory, Lab, or Project classification
 
-Return ONLY valid JSON — no markdown fences, no explanations, no extra text.
+Extract EXACTLY what appears in the syllabus. Do NOT invent data.
+
+Return ONLY valid JSON — no markdown, no explanations.
+
+KEEP THE RESPONSE COMPACT. Do not include more than 5 topics per unit. Abbreviate where possible.
 
 JSON FORMAT:
 
@@ -22,86 +30,118 @@ JSON FORMAT:
     "total_courses": number,
     "total_credits": number,
     "total_theory": number,
-    "total_labs": number,
-    "semester_count": number
+    "total_labs": number
   },
   "courses": [
     {
-      "course_name": "extracted from text",
-      "course_code": "extracted or empty string",
-      "credits": "extracted or empty string",
-      "type": "theory" | "lab" | "project" | "training" | "elective",
-      "category": "core" | "elective" | "lab" | "project" | "theory",
-      "semester": "extracted or empty string",
-      "internal_marks": "extracted or empty string",
-      "end_term_marks": "extracted or empty string",
-      "practical_marks": "extracted or empty string",
-      "estimated_effort": "High" | "Medium" | "Low",
-      "confidence": number between 0 and 1,
-      "units": [
-        {
-          "unit": "UNIT I",
-          "topics": ["topic1", "topic2"]
-        }
-      ]
+      "course_name": "string",
+      "course_code": "string or empty",
+      "credits": "string",
+      "type": "theory|lab|project",
+      "category": "core|elective|lab|project",
+      "semester": "string or empty",
+      "internal_marks": "string or empty",
+      "end_term_marks": "string or empty",
+      "confidence": 0.0 to 1.0,
+      "units": [{"unit":"UNIT I","topics":["topic1","topic2"]}]
     }
   ],
   "deliverables": [
     {
-      "type": "exam" | "assignment" | "project" | "quiz" | "lab" | "presentation",
-      "name": "extracted from text",
-      "date": "extracted or empty string",
-      "weight": "extracted or empty string",
-      "priority": "High" | "Medium" | "Low",
-      "category": "exam" | "assignment" | "project" | "quiz" | "lab",
-      "estimated_effort": "High" | "Medium" | "Low",
-      "confidence": number between 0 and 1
+      "type": "exam|assignment|project|quiz",
+      "name": "string",
+      "date": "string or empty",
+      "weight": "string or empty",
+      "priority": "High|Medium|Low",
+      "category": "exam|assignment|project|quiz",
+      "confidence": 0.0 to 1.0
     }
   ]
-}
-
-RULES:
-1. Extract EXACTLY what exists in the input. Never invent data.
-2. If the syllabus has course tables → populate courses[].
-3. If the syllabus has deadlines or graded items → populate deliverables[].
-4. If both exist → populate both arrays.
-5. If a field is not found, use "" for strings, 0 for numbers.
-6. confidence = your certainty about each item (0 to 1).
-7. Be aggressive — extract partial data rather than skipping items.
-8. Output ONLY the JSON object.`;
+}`;
 
 /**
- * Parse syllabus text using Groq LLM.
+ * Try to repair truncated JSON by closing open brackets/braces.
  */
+function repairJSON(str) {
+  // Try parsing as-is first
+  try { return JSON.parse(str); } catch { }
+
+  // Remove trailing comma
+  let s = str.replace(/,\s*$/, '');
+
+  // Count open brackets/braces
+  let braces = 0, brackets = 0, inString = false, escaped = false;
+  for (const ch of s) {
+    if (escaped) { escaped = false; continue; }
+    if (ch === '\\') { escaped = true; continue; }
+    if (ch === '"') { inString = !inString; continue; }
+    if (inString) continue;
+    if (ch === '{') braces++;
+    if (ch === '}') braces--;
+    if (ch === '[') brackets++;
+    if (ch === ']') brackets--;
+  }
+
+  // If we're inside a string, close it
+  if (inString) s += '"';
+
+  // Remove any trailing incomplete key-value
+  s = s.replace(/,\s*"[^"]*"?\s*:?\s*"?[^"]*$/, '');
+  s = s.replace(/,\s*$/, '');
+
+  // Close remaining brackets and braces
+  while (brackets > 0) { s += ']'; brackets--; }
+  while (braces > 0) { s += '}'; braces--; }
+
+  try { return JSON.parse(s); } catch { return null; }
+}
+
 async function parseSyllabus(syllabusText) {
   const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
+  // Truncate very long inputs to avoid token limits
+  const maxInput = 12000;
+  let inputText = syllabusText;
+  if (inputText.length > maxInput) {
+    console.log(`[AI Parser] Input too long (${inputText.length}), truncating to ${maxInput} chars`);
+    inputText = inputText.slice(0, maxInput);
+  }
+
   for (let attempt = 0; attempt < 2; attempt++) {
     try {
-      console.log(`[AI Parser] Attempt ${attempt + 1} — sending ${syllabusText.length} chars to Groq...`);
+      console.log(`[AI Parser] Attempt ${attempt + 1} — sending ${inputText.length} chars`);
 
       const completion = await groq.chat.completions.create({
         model: 'llama-3.3-70b-versatile',
         messages: [
           { role: 'system', content: SYSTEM_PROMPT },
-          { role: 'user', content: `Parse this syllabus:\n\n${syllabusText}` }
+          { role: 'user', content: `Parse this syllabus and return JSON:\n\n${inputText}` }
         ],
-        temperature: 0.2,
-        max_tokens: 8000
+        temperature: 0.1,
+        max_tokens: 4096
       });
 
       const raw = completion.choices[0].message.content.trim();
-      console.log(`[AI Parser] Got ${raw.length} chars back from Groq.`);
+      console.log(`[AI Parser] Got ${raw.length} chars back`);
 
-      // Strip markdown fences if present
+      // Strip markdown fences
       let jsonStr = raw;
       if (jsonStr.startsWith('```')) {
         jsonStr = jsonStr.replace(/^```(?:json)?\n?/, '').replace(/\n?```$/, '');
       }
 
-      const parsed = JSON.parse(jsonStr);
+      // Try normal parse, then repair
+      let parsed;
+      try {
+        parsed = JSON.parse(jsonStr);
+      } catch (jsonErr) {
+        console.warn(`[AI Parser] JSON parse failed, attempting repair...`);
+        parsed = repairJSON(jsonStr);
+        if (!parsed) throw new Error('JSON repair failed: ' + jsonErr.message);
+        console.log(`[AI Parser] JSON repaired successfully`);
+      }
 
-      // Ensure arrays exist
+      // Ensure arrays
       if (!parsed.courses) parsed.courses = [];
       if (!parsed.deliverables) parsed.deliverables = [];
       if (!parsed.summary) {
@@ -109,18 +149,23 @@ async function parseSyllabus(syllabusText) {
           total_courses: parsed.courses.length,
           total_credits: parsed.courses.reduce((s, c) => s + (parseInt(c.credits) || 0), 0),
           total_theory: parsed.courses.filter(c => c.type === 'theory').length,
-          total_labs: parsed.courses.filter(c => c.type === 'lab').length,
-          semester_count: 1
+          total_labs: parsed.courses.filter(c => c.type === 'lab').length
         };
       }
 
-      // If both empty on first attempt → retry with simpler instruction
+      // Recompute summary from actual courses (don't trust AI math)
+      parsed.summary.total_courses = parsed.courses.length;
+      parsed.summary.total_credits = parsed.courses.reduce((s, c) => s + (parseInt(c.credits) || 0), 0);
+      parsed.summary.total_theory = parsed.courses.filter(c => c.type === 'theory').length;
+      parsed.summary.total_labs = parsed.courses.filter(c => c.type === 'lab').length;
+
+      // Empty on first try → retry
       if (parsed.courses.length === 0 && parsed.deliverables.length === 0 && attempt === 0) {
-        console.warn('[AI Parser] Empty extraction, retrying with simpler prompt...');
+        console.warn('[AI Parser] Empty, retrying...');
         continue;
       }
 
-      // Set defaults
+      // Defaults
       for (const c of parsed.courses) {
         if (typeof c.confidence !== 'number') c.confidence = 0.75;
         if (!c.units) c.units = [];
@@ -131,14 +176,12 @@ async function parseSyllabus(syllabusText) {
         if (!d.name) d.name = d.type || 'Unknown';
       }
 
-      console.log(`[AI Parser] ✓ Extracted ${parsed.courses.length} courses, ${parsed.deliverables.length} deliverables.`);
+      console.log(`[AI Parser] ✓ ${parsed.courses.length} courses (${parsed.summary.total_credits} cr), ${parsed.deliverables.length} deliverables`);
       return parsed;
 
     } catch (err) {
-      console.error(`[AI Parser] ✗ Attempt ${attempt + 1} FAILED:`, err.message);
-      if (attempt === 1) {
-        throw new Error('AI parsing failed after 2 attempts: ' + err.message);
-      }
+      console.error(`[AI Parser] ✗ Attempt ${attempt + 1}: ${err.message}`);
+      if (attempt === 1) throw new Error('AI failed: ' + err.message);
     }
   }
 }

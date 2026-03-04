@@ -27,6 +27,7 @@ const historyDrawer = $('history-drawer');
 const drawerClose = $('drawer-close');
 const drawerList = $('drawer-list');
 const saveBtn = $('save-syllabus-btn');
+const saveDashboardBtn = $('save-dashboard-btn');
 const saveModal = $('save-modal');
 const saveNameInput = $('save-name-input');
 const saveCancel = $('save-cancel');
@@ -83,7 +84,7 @@ logoHome.addEventListener('click', goHome);
 topNavBtn.addEventListener('click', goHome);
 
 // ─── PDF ─────────────────────────────────────────────────────────────
-uploadZone.addEventListener('click', () => pdfInput.click());
+// Note: uploadZone is now a <label for="pdf-input">, so clicking it opens the file picker natively.
 uploadZone.addEventListener('dragover', e => { e.preventDefault(); uploadZone.classList.add('dragover'); });
 uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('dragover'));
 uploadZone.addEventListener('drop', e => {
@@ -215,7 +216,9 @@ function populateCards(resp) {
 }
 
 // ─── SAVE MODAL ──────────────────────────────────────────────────────
-saveBtn.addEventListener('click', () => { saveModal.classList.remove('hidden'); saveNameInput.value = ''; saveNameInput.focus(); });
+function openSaveModal() { saveModal.classList.remove('hidden'); saveNameInput.value = ''; saveNameInput.focus(); }
+saveBtn.addEventListener('click', openSaveModal);
+saveDashboardBtn.addEventListener('click', openSaveModal);
 saveCancel.addEventListener('click', () => saveModal.classList.add('hidden'));
 saveModal.addEventListener('click', e => { if (e.target === saveModal) saveModal.classList.add('hidden'); });
 

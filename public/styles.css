@@ -593,6 +593,12 @@ textarea::placeholder {
     gap: 0.875rem;
 }
 
+.dashboard-actions {
+    display: flex;
+    gap: 0.5rem;
+    justify-content: flex-end;
+}
+
 .stat-card {
     background: var(--bg-card);
     border: 1px solid var(--border);
