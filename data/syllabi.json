@@ -1,0 +1,95 @@
+[
+  {
+    "id": "mmbsivja5vyc",
+    "name": "ECE Test",
+    "rawText": "B.Tech ECE Sem V\nECC-303 Digital Signal Processing 4 credits Theory\nUNIT I: DFT, Z-Transform\nUNIT II: FFT Algorithms\nECC-305 Microelectronics 4 credits Theory\nUNIT I: MOSFET\nUNIT II: Amplifiers\nECC-351 DSP Lab 2 credits Lab",
+    "result": {
+      "format": "indian_btech",
+      "semester_summary": {
+        "total_courses": 3,
+        "total_credits": 10,
+        "total_theory": 8,
+        "total_labs": 2
+      },
+      "courses": [
+        {
+          "course_code": "ECC-303",
+          "course_name": "Digital Signal Processing",
+          "credits": "4",
+          "type": "theory",
+          "internal_marks": "",
+          "end_term_marks": "",
+          "practical_marks": "",
+          "weight": "",
+          "date": "",
+          "priority": "High",
+          "category": "theory",
+          "estimated_effort": "High",
+          "confidence": 0.9,
+          "units": [
+            {
+              "unit": "UNIT I",
+              "topics": [
+                "DFT",
+                "Z-Transform"
+              ]
+            },
+            {
+              "unit": "UNIT II",
+              "topics": [
+                "FFT Algorithms"
+              ]
+            }
+          ]
+        },
+        {
+          "course_code": "ECC-305",
+          "course_name": "Microelectronics",
+          "credits": "4",
+          "type": "theory",
+          "internal_marks": "",
+          "end_term_marks": "",
+          "practical_marks": "",
+          "weight": "",
+          "date": "",
+          "priority": "High",
+          "category": "theory",
+          "estimated_effort": "High",
+          "confidence": 0.9,
+          "units": [
+            {
+              "unit": "UNIT I",
+              "topics": [
+                "MOSFET"
+              ]
+            },
+            {
+              "unit": "UNIT II",
+              "topics": [
+                "Amplifiers"
+              ]
+            }
+          ]
+        },
+        {
+          "course_code": "ECC-351",
+          "course_name": "DSP Lab",
+          "credits": "2",
+          "type": "lab",
+          "internal_marks": "",
+          "end_term_marks": "",
+          "practical_marks": "",
+          "weight": "",
+          "date": "",
+          "priority": "Medium",
+          "category": "lab",
+          "estimated_effort": "Medium",
+          "confidence": 0.8,
+          "units": []
+        }
+      ],
+      "source": "ai"
+    },
+    "savedAt": "2026-03-04T08:44:19.366Z"
+  }
+]
