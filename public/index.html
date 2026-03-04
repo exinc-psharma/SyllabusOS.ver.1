@@ -19,7 +19,7 @@
     <nav class="top-nav">
         <div class="logo" id="logo-home" title="Go Home">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <rect width="24" height="24" rx="6" fill="#2563EB" />
+                <rect width="24" height="24" rx="6" fill="#6366F1" />
                 <path d="M7 12L10.5 15.5L18 8" stroke="white" stroke-width="2" stroke-linecap="round"
                     stroke-linejoin="round" />
             </svg>
@@ -100,6 +100,25 @@
                 <span class="btn-text">Generate Academic Plan</span>
                 <span class="loader hidden"></span>
             </button>
+
+            <div id="ai-processing-steps" class="ai-processing-steps hidden">
+                <div class="ai-step" data-step="0">
+                    <span class="ai-step-dot"></span>
+                    <span>Extracting courses from syllabus...</span>
+                </div>
+                <div class="ai-step" data-step="1">
+                    <span class="ai-step-dot"></span>
+                    <span>Detecting credits & classifications...</span>
+                </div>
+                <div class="ai-step" data-step="2">
+                    <span class="ai-step-dot"></span>
+                    <span>Analyzing workload distribution...</span>
+                </div>
+                <div class="ai-step" data-step="3">
+                    <span class="ai-step-dot"></span>
+                    <span>Building semester dashboard...</span>
+                </div>
+            </div>
         </div>
     </main>
 
@@ -162,6 +181,20 @@
     <main class="screen" id="screen-3">
         <div class="dashboard-wrapper">
             <div class="dashboard-main">
+                <div class="command-status" id="command-status">
+                    <div class="status-indicator">
+                        <span class="status-dot active"></span>
+                        <span>AI Engine Active</span>
+                    </div>
+                    <div class="status-indicator">
+                        <span class="status-dot active"></span>
+                        <span>Syllabus Parsed</span>
+                    </div>
+                    <div class="status-indicator">
+                        <span class="status-dot active"></span>
+                        <span>Dashboard Generated</span>
+                    </div>
+                </div>
                 <div class="stats-grid">
                     <div class="stat-card">
                         <div class="stat-value" id="stat-courses">--</div>

@@ -33,6 +33,7 @@ const saveNameInput = $('save-name-input');
 const saveCancel = $('save-cancel');
 const saveConfirm = $('save-confirm');
 const toastContainer = $('toast-container');
+const aiProcessingSteps = $('ai-processing-steps');
 
 const screens = { 1: $('screen-1'), 2: $('screen-2'), 3: $('screen-3') };
 
@@ -122,6 +123,18 @@ generatePlanBtn.addEventListener('click', async () => {
     generatePlanBtn.disabled = true;
     generatePlanBtn.style.opacity = '0.8';
 
+    // Show AI processing steps
+    aiProcessingSteps.classList.remove('hidden');
+    const steps = aiProcessingSteps.querySelectorAll('.ai-step');
+    steps.forEach(s => { s.classList.remove('active', 'done'); });
+    let stepIdx = 0;
+    const stepInterval = setInterval(() => {
+        if (stepIdx > 0 && stepIdx <= 4) steps[stepIdx - 1]?.classList.replace('active', 'done');
+        if (stepIdx < 4) steps[stepIdx]?.classList.add('active');
+        stepIdx++;
+        if (stepIdx > 4) clearInterval(stepInterval);
+    }, 1200);
+
     try {
         let result;
         if (uploadedPdfFile) {
@@ -170,6 +183,12 @@ generatePlanBtn.addEventListener('click', async () => {
     loader.classList.add('hidden');
     generatePlanBtn.disabled = false;
     generatePlanBtn.style.opacity = '1';
+
+    // Finish processing steps
+    clearInterval(stepInterval);
+    steps.forEach(s => { s.classList.remove('active'); s.classList.add('done'); });
+    setTimeout(() => aiProcessingSteps.classList.add('hidden'), 800);
+
     switchScreen(2);
 });
 
@@ -374,7 +393,7 @@ function computeScore(c) {
 }
 
 // ─── CHARTS ──────────────────────────────────────────────────────────
-const COLORS = ['#3B82F6', '#EF4444', '#8B5CF6', '#F59E0B', '#10B981', '#EC4899', '#6366F1', '#14B8A6'];
+const COLORS = ['#6366F1', '#EF4444', '#8B5CF6', '#F59E0B', '#22C55E', '#EC4899', '#3B82F6', '#14B8A6'];
 
 function renderCreditsChart(courses) {
     const ctx = $('credits-chart').getContext('2d');
@@ -382,8 +401,8 @@ function renderCreditsChart(courses) {
     if (creditsChart) creditsChart.destroy();
     creditsChart = new Chart(ctx, {
         type: 'doughnut',
-        data: { labels: Object.keys(map), datasets: [{ data: Object.values(map), backgroundColor: COLORS, borderWidth: 2, borderColor: '#fff', hoverOffset: 4 }] },
-        options: { responsive: true, maintainAspectRatio: true, cutout: '55%', plugins: { legend: { position: 'bottom', labels: { usePointStyle: true, padding: 10, font: { family: 'Inter', size: 10, weight: '500' }, color: '#64748B' } } } }
+        data: { labels: Object.keys(map), datasets: [{ data: Object.values(map), backgroundColor: COLORS, borderWidth: 2, borderColor: '#0F172A', hoverOffset: 4 }] },
+        options: { responsive: true, maintainAspectRatio: true, cutout: '55%', plugins: { legend: { position: 'bottom', labels: { usePointStyle: true, padding: 10, font: { family: 'Inter', size: 10, weight: '500' }, color: '#94A3B8' } } } }
     });
 }
 
@@ -394,8 +413,8 @@ function renderUnitsChart(courses) {
     if (unitsChart) unitsChart.destroy();
     unitsChart = new Chart(ctx, {
         type: 'bar',
-        data: { labels: withUnits.map(c => c.course_code || c.course_name.slice(0, 12)), datasets: [{ label: 'Units', data: withUnits.map(c => c.units.length), backgroundColor: '#3B82F6', borderRadius: 4, barThickness: 24 }] },
-        options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { stepSize: 1, font: { size: 10 } }, grid: { color: '#F1F5F9' } }, x: { ticks: { font: { size: 9 } }, grid: { display: false } } } }
+        data: { labels: withUnits.map(c => c.course_code || c.course_name.slice(0, 12)), datasets: [{ label: 'Units', data: withUnits.map(c => c.units.length), backgroundColor: '#6366F1', borderRadius: 4, barThickness: 24 }] },
+        options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { stepSize: 1, font: { size: 10 }, color: '#94A3B8' }, grid: { color: '#334155' } }, x: { ticks: { font: { size: 9 }, color: '#94A3B8' }, grid: { display: false } } } }
     });
 }
 
@@ -417,7 +436,7 @@ function renderCategoryChart(deliverables) {
     unitsChart = new Chart(ctx, {
         type: 'bar',
         data: { labels: Object.keys(catMap).map(k => k.charAt(0).toUpperCase() + k.slice(1)), datasets: [{ label: 'Count', data: Object.values(catMap), backgroundColor: COLORS, borderRadius: 4, barThickness: 24 }] },
-        options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { stepSize: 1, font: { size: 10 } }, grid: { color: '#F1F5F9' } }, x: { ticks: { font: { size: 9 } }, grid: { display: false } } } }
+        options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { stepSize: 1, font: { size: 10 }, color: '#94A3B8' }, grid: { color: '#334155' } }, x: { ticks: { font: { size: 9 }, color: '#94A3B8' }, grid: { display: false } } } }
     });
 }
 
