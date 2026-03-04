@@ -101,8 +101,8 @@ function repairJSON(str) {
 async function parseSyllabus(syllabusText, semester) {
   const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
-  // Truncate very long inputs to avoid token limits
-  const maxInput = 28000;
+  // Cap input to save tokens on free tier
+  const maxInput = 15000;
   let inputText = syllabusText;
   if (inputText.length > maxInput) {
     console.log(`[AI Parser] Input too long (${inputText.length}), truncating to ${maxInput} chars`);
@@ -117,9 +117,12 @@ async function parseSyllabus(syllabusText, semester) {
   }
   userMsg += inputText;
 
-  for (let attempt = 0; attempt < 2; attempt++) {
+  // Only retry for small inputs — large inputs burn too many tokens
+  const maxAttempts = inputText.length > 5000 ? 1 : 2;
+
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
     try {
-      console.log(`[AI Parser] Attempt ${attempt + 1} — sending ${inputText.length} chars`);
+      console.log(`[AI Parser] Attempt ${attempt + 1}/${maxAttempts} — sending ${inputText.length} chars`);
 
       const completion = await groq.chat.completions.create({
         model: 'llama-3.3-70b-versatile',
@@ -128,7 +131,7 @@ async function parseSyllabus(syllabusText, semester) {
           { role: 'user', content: userMsg }
         ],
         temperature: 0.1,
-        max_tokens: 4096
+        max_tokens: 3000
       });
 
       const raw = completion.choices[0].message.content.trim();
