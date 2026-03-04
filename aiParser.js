@@ -98,7 +98,7 @@ function repairJSON(str) {
   try { return JSON.parse(s); } catch { return null; }
 }
 
-async function parseSyllabus(syllabusText) {
+async function parseSyllabus(syllabusText, semester) {
   const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
   // Truncate very long inputs to avoid token limits
@@ -109,6 +109,14 @@ async function parseSyllabus(syllabusText) {
     inputText = inputText.slice(0, maxInput);
   }
 
+  // Build user message with optional semester filter
+  let userMsg = 'Parse this syllabus and return JSON:\n\n';
+  if (semester) {
+    userMsg = `IMPORTANT: Extract ONLY courses from SEMESTER ${semester}. Ignore all other semesters.\n\nParse this syllabus and return JSON:\n\n`;
+    console.log(`[AI Parser] Semester filter active: ${semester}`);
+  }
+  userMsg += inputText;
+
   for (let attempt = 0; attempt < 2; attempt++) {
     try {
       console.log(`[AI Parser] Attempt ${attempt + 1} — sending ${inputText.length} chars`);
@@ -117,7 +125,7 @@ async function parseSyllabus(syllabusText) {
         model: 'llama-3.3-70b-versatile',
         messages: [
           { role: 'system', content: SYSTEM_PROMPT },
-          { role: 'user', content: `Parse this syllabus and return JSON:\n\n${inputText}` }
+          { role: 'user', content: userMsg }
         ],
         temperature: 0.1,
         max_tokens: 4096

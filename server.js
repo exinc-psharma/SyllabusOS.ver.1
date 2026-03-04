@@ -82,11 +82,11 @@ const MOCK_DATA = {
 
 // ─── API: Parse text ─────────────────────────────────────────────────
 app.post('/api/parse-syllabus', async (req, res) => {
-    const { syllabusText } = req.body;
+    const { syllabusText, semester } = req.body;
     if (!syllabusText || syllabusText.trim().length === 0) return res.status(400).json({ error: 'syllabusText is required' });
     try {
-        console.log(`[Server] /api/parse-syllabus — ${syllabusText.length} chars`);
-        const result = await parseSyllabus(syllabusText);
+        console.log(`[Server] /api/parse-syllabus — ${syllabusText.length} chars, semester: ${semester || 'any'}`);
+        const result = await parseSyllabus(syllabusText, semester);
         console.log(`[Server] ✓ AI parse success — ${result.courses.length} courses, ${result.deliverables.length} deliverables`);
         return res.json({ ...result, source: 'ai' });
     } catch (err) {
@@ -98,15 +98,18 @@ app.post('/api/parse-syllabus', async (req, res) => {
 // ─── API: Parse PDF ──────────────────────────────────────────────────
 app.post('/api/parse-syllabus-pdf', upload.single('pdf'), async (req, res) => {
     if (!req.file) return res.status(400).json({ error: 'No PDF uploaded' });
+    const semester = req.body?.semester || '';
     try {
         const pdfData = await pdfParse(req.file.buffer);
         const extractedText = pdfData.text;
         if (!extractedText || extractedText.trim().length === 0) return res.status(422).json({ error: 'Could not extract text' });
+        console.log(`[Server] PDF text: ${extractedText.length} chars, semester: ${semester || 'any'}`);
         try {
-            const result = await parseSyllabus(extractedText);
+            const result = await parseSyllabus(extractedText, semester);
             return res.json({ ...result, source: 'ai', extractedText });
         } catch (aiErr) {
-            return res.json({ ...MOCK_DATA, source: 'fallback', extractedText });
+            console.error(`[Server] ✗ PDF AI FAILED: ${aiErr.message}`);
+            return res.json({ ...MOCK_DATA, source: 'fallback', extractedText, error_reason: aiErr.message });
         }
     } catch (err) {
         return res.status(500).json({ error: 'PDF processing failed' });

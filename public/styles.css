@@ -236,6 +236,44 @@ textarea::placeholder {
     color: #94A3B8;
 }
 
+/* Semester Filter */
+.semester-filter {
+    text-align: left;
+    margin-bottom: 0.75rem;
+}
+
+.semester-filter label {
+    display: block;
+    font-weight: 500;
+    margin-bottom: 0.3rem;
+    color: var(--text-main);
+    font-size: 0.875rem;
+}
+
+.semester-filter input {
+    width: 100%;
+    padding: 0.5rem 0.875rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    font-size: 0.875rem;
+    color: var(--text-main);
+    transition: border-color 0.2s, box-shadow 0.2s;
+    box-shadow: var(--shadow-sm);
+}
+
+.semester-filter input:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.filter-hint {
+    display: block;
+    font-size: 0.6875rem;
+    color: #94A3B8;
+    margin-top: 0.25rem;
+}
+
 /* PDF Upload */
 .upload-zone {
     display: block;
