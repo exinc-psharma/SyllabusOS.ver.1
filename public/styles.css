@@ -238,6 +238,7 @@ textarea::placeholder {
 
 /* PDF Upload */
 .upload-zone {
+    display: block;
     border: 2px dashed var(--border);
     border-radius: var(--radius-md);
     padding: 1rem;

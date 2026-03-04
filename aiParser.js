@@ -2,28 +2,30 @@ const Groq = require('groq-sdk');
 
 const SYSTEM_PROMPT = `You are an AI academic syllabus parser.
 
-Extract ONLY subjects that carry academic credits and will be graded/scored. These are the actual semester subjects a student attends and takes exams for.
+Extract ONLY subjects that carry academic credits and will be graded/scored.
 
-DO NOT include:
-- NCC / NSS / Cultural Clubs / Technical Societies
-- EAE / OAE (Emerging Area / Open Area Elective) placeholders — unless a specific subject name is given
-- PCE (Programme Core Elective) placeholders — unless a specific subject name is given
+CRITICAL FILTERING RULES — DO NOT include:
+- NCC / NSS / Cultural Clubs / Technical Societies / Sports
+- Generic placeholders like "PCE-1", "PCE-2", "EAE-1", "OAE-1" without specific subject names
 - Audit courses with 0 credits
-- Summer training / Industrial training (unless it has credits)
 - Activities, community service, or co-curricular items
+- Subjects from OTHER semesters if the user specified a particular semester
 
-ONLY include subjects that have:
-- A specific course name (not just a placeholder like "PCE-1" or "EAE-1")
+If the document covers MULTIPLE semesters:
+- Extract subjects from the semester that has the most detailed content (unit breakdowns, topics)
+- If the title says "5th Sem" or "Semester V", focus ONLY on that semester
+- Tag each course with its semester number
+
+ONLY include subjects with:
+- A real course name and course code
 - Allocated credits (1 or more)
-- Theory, Lab, or Project classification
+- Clear theory, lab, or project classification
 
-Extract EXACTLY what appears in the syllabus. Do NOT invent data.
+Extract EXACTLY what appears in the text. Do NOT invent or hallucinate subjects.
 
-Return ONLY valid JSON — no markdown, no explanations.
+KEEP THE RESPONSE COMPACT. Max 3 topics per unit. Skip unit details for labs.
 
-KEEP THE RESPONSE COMPACT. Do not include more than 5 topics per unit. Abbreviate where possible.
-
-JSON FORMAT:
+Return ONLY valid JSON:
 
 {
   "summary": {
@@ -100,7 +102,7 @@ async function parseSyllabus(syllabusText) {
   const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
   // Truncate very long inputs to avoid token limits
-  const maxInput = 12000;
+  const maxInput = 28000;
   let inputText = syllabusText;
   if (inputText.length > maxInput) {
     console.log(`[AI Parser] Input too long (${inputText.length}), truncating to ${maxInput} chars`);
