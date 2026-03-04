@@ -409,7 +409,7 @@ function renderCreditsChart(courses) {
 function renderUnitsChart(courses) {
     const ctx = $('units-chart').getContext('2d');
     const withUnits = courses.filter(c => c.units && c.units.length > 0);
-    if (withUnits.length === 0) { ctx.canvas.parentElement.innerHTML = '<p style="color:var(--text-muted);font-size:0.8125rem;text-align:center;padding:2rem 0">No unit data available</p>'; return; }
+    if (withUnits.length === 0) { ctx.canvas.parentElement.innerHTML = '<div class="empty-state"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="9" y1="9" x2="15" y2="15"/><line x1="15" y1="9" x2="9" y2="15"/></svg><span>No detailed unit breakdown detected in the syllabus.</span></div>'; return; }
     if (unitsChart) unitsChart.destroy();
     unitsChart = new Chart(ctx, {
         type: 'bar',
@@ -473,7 +473,7 @@ function renderBusyWeeks(courses, deliverables, mode) {
 function renderStudyPlan(courses) {
     const el = $('study-plan-list');
     const withUnits = courses.filter(c => c.units && c.units.length > 0);
-    if (withUnits.length === 0) { el.innerHTML = '<p style="color:var(--text-muted);font-size:0.8125rem">No unit data for planning.</p>'; return; }
+    if (withUnits.length === 0) { el.innerHTML = '<div class="empty-state"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg><span>No unit data for study planning.</span></div>'; return; }
     const blocks = [];
     withUnits.forEach(c => c.units.forEach(u => blocks.push({ course: c.course_code || c.course_name.slice(0, 15), unit: u.unit, color: c.type === 'lab' ? 'var(--lab)' : 'var(--primary)' })));
     const weeks = [];
