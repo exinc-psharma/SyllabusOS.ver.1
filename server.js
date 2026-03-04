@@ -85,11 +85,13 @@ app.post('/api/parse-syllabus', async (req, res) => {
     const { syllabusText } = req.body;
     if (!syllabusText || syllabusText.trim().length === 0) return res.status(400).json({ error: 'syllabusText is required' });
     try {
+        console.log(`[Server] /api/parse-syllabus — ${syllabusText.length} chars`);
         const result = await parseSyllabus(syllabusText);
+        console.log(`[Server] ✓ AI parse success — ${result.courses.length} courses, ${result.deliverables.length} deliverables`);
         return res.json({ ...result, source: 'ai' });
     } catch (err) {
-        console.error('AI failed, fallback:', err.message);
-        return res.json({ ...MOCK_DATA, source: 'fallback' });
+        console.error(`[Server] ✗ AI FAILED: ${err.message}`);
+        return res.json({ ...MOCK_DATA, source: 'fallback', error_reason: err.message });
     }
 });
 
