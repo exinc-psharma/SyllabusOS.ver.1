@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SyllabusOS - AI Semester Command Center</title>
+    <meta name="description"
+        content="Transform unstructured syllabus text into an intelligent academic planning dashboard with AI.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+</head>
+
+<body>
+    <!-- Top Nav -->
+    <nav class="top-nav" id="top-nav">
+        <div class="logo">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect width="24" height="24" rx="6" fill="#2563EB" />
+                <path d="M7 12L10.5 15.5L18 8" stroke="white" stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round" />
+            </svg>
+            SyllabusOS
+        </div>
+        <button id="upload-new-btn" class="nav-btn hidden">Upload New Syllabus</button>
+    </nav>
+
+    <!-- ═══════════════════════════════════════════════════════════ -->
+    <!-- SCREEN 1: INGESTOR                                         -->
+    <!-- ═══════════════════════════════════════════════════════════ -->
+    <main class="screen active" id="screen-1">
+        <div class="ingestor-container">
+            <h1>AI Semester Command Center</h1>
+            <p class="subtitle">Transform any syllabus into a smart academic plan instantly.</p>
+
+            <div class="input-wrapper">
+                <label for="syllabus-input">Paste Your Syllabus Text</label>
+                <textarea id="syllabus-input"
+                    placeholder="Paste any syllabus here — assignment lists, B.Tech course tables, unit breakdowns..."></textarea>
+            </div>
+
+            <!-- PDF Upload Zone -->
+            <div class="upload-zone" id="upload-zone">
+                <div class="upload-zone-content">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                        <polyline points="14 2 14 8 20 8"></polyline>
+                        <line x1="12" y1="18" x2="12" y2="12"></line>
+                        <line x1="9" y1="15" x2="15" y2="15"></line>
+                    </svg>
+                    <span>Or drop a syllabus PDF here</span>
+                    <span class="upload-hint">PDF up to 10 MB</span>
+                </div>
+                <input type="file" id="pdf-input" accept=".pdf" hidden>
+            </div>
+            <div id="pdf-filename" class="pdf-filename hidden"></div>
+
+            <button id="generate-plan-btn" class="primary-btn">
+                <span class="btn-text">Generate Academic Plan</span>
+                <span class="loader hidden"></span>
+            </button>
+        </div>
+    </main>
+
+    <!-- ═══════════════════════════════════════════════════════════ -->
+    <!-- SCREEN 2: EXTRACTION REVIEW                                -->
+    <!-- ═══════════════════════════════════════════════════════════ -->
+    <main class="screen" id="screen-2">
+        <div class="review-layout">
+            <div class="panel raw-panel">
+                <div class="panel-header">
+                    <h2>Raw Syllabus Text</h2>
+                </div>
+                <div class="panel-content">
+                    <p id="raw-text-display"></p>
+                </div>
+            </div>
+
+            <div class="panel structured-panel">
+                <div class="panel-header">
+                    <h2>Structured Output</h2>
+                    <span class="success-badge" id="parse-badge">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <path d="M20 6L9 17l-5-5" />
+                        </svg>
+                        <span id="badge-text">AI Extraction Complete</span>
+                    </span>
+                </div>
+
+                <!-- Toggle -->
+                <div class="view-toggle">
+                    <button class="toggle-btn active" id="toggle-cards">Cards</button>
+                    <button class="toggle-btn" id="toggle-json">Raw JSON</button>
+                </div>
+
+                <div class="panel-content">
+                    <div id="json-preview" class="json-cards-container"></div>
+                    <pre id="raw-json-display" class="raw-json hidden"></pre>
+                </div>
+                <div class="panel-footer">
+                    <button id="generate-timeline-btn" class="primary-btn full-width">Generate Visual Dashboard</button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- ═══════════════════════════════════════════════════════════ -->
+    <!-- SCREEN 3: COMMAND DASHBOARD                                -->
+    <!-- ═══════════════════════════════════════════════════════════ -->
+    <main class="screen" id="screen-3">
+        <div class="dashboard-wrapper">
+            <!-- LEFT: Main Dashboard -->
+            <div class="dashboard-main">
+                <!-- Stats Row -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-value" id="stat-courses">--</div>
+                        <div class="stat-label">Total Subjects</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="stat-credits">--</div>
+                        <div class="stat-label">Total Credits</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="stat-theory">--</div>
+                        <div class="stat-label">Theory</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="stat-labs">--</div>
+                        <div class="stat-label">Labs</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="stat-workload">--</div>
+                        <div class="stat-label">Workload</div>
+                    </div>
+                </div>
+
+                <!-- Row: Charts -->
+                <div class="charts-row">
+                    <div class="card-section">
+                        <h2>Credits Distribution</h2>
+                        <div class="chart-container">
+                            <canvas id="credits-chart"></canvas>
+                        </div>
+                    </div>
+                    <div class="card-section">
+                        <h2>Units per Subject</h2>
+                        <div class="chart-container">
+                            <canvas id="units-chart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Row: Priority + Timeline -->
+                <div class="two-col-row">
+                    <div class="card-section">
+                        <h2>High Impact Tasks</h2>
+                        <div class="priority-list" id="priority-list"></div>
+                    </div>
+                    <div class="card-section">
+                        <h2>Chronological Timeline</h2>
+                        <div class="timeline" id="timeline-view"></div>
+                    </div>
+                </div>
+
+                <!-- Row: Busy Weeks + Study Plan -->
+                <div class="two-col-row">
+                    <div class="card-section">
+                        <h2>Busy Week Detection</h2>
+                        <div class="busy-weeks-list" id="busy-weeks-list"></div>
+                    </div>
+                    <div class="card-section">
+                        <h2>📅 Recommended Study Plan</h2>
+                        <div class="study-plan-list" id="study-plan-list"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RIGHT: AI Insights Panel -->
+            <aside class="insights-panel">
+                <div class="insights-header">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <line x1="12" y1="16" x2="12" y2="12"></line>
+                        <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                    </svg>
+                    AI Insights
+                </div>
+                <div id="insights-content" class="insights-content">
+                    <!-- Filled by JS -->
+                </div>
+            </aside>
+        </div>
+    </main>
+
+    <script src="app.js"></script>
+</body>
+
+</html>
