@@ -157,26 +157,20 @@ async function parseSyllabus(syllabusText, semester) {
       // Ensure arrays
       if (!parsed.courses) parsed.courses = [];
       if (!parsed.deliverables) parsed.deliverables = [];
-      if (!parsed.summary) {
-        parsed.summary = {
-          total_courses: parsed.courses.length,
-          total_credits: parsed.courses.reduce((s, c) => s + (parseInt(c.credits) || 0), 0),
-          total_theory: parsed.courses.filter(c => c.type === 'theory').length,
-          total_labs: parsed.courses.filter(c => c.type === 'lab').length
-        };
-      }
 
-      // Recompute summary from actual courses (don't trust AI math)
-      parsed.summary.total_courses = parsed.courses.length;
-      parsed.summary.total_credits = parsed.courses.reduce((s, c) => s + (parseInt(c.credits) || 0), 0);
-      parsed.summary.total_theory = parsed.courses.filter(c => c.type === 'theory').length;
-      parsed.summary.total_labs = parsed.courses.filter(c => c.type === 'lab').length;
-
-      // Empty on first try → retry
-      if (parsed.courses.length === 0 && parsed.deliverables.length === 0 && attempt === 0) {
+      // Empty on first try AND we have more attempts → retry
+      if (parsed.courses.length === 0 && parsed.deliverables.length === 0 && attempt < maxAttempts - 1) {
         console.warn('[AI Parser] Empty, retrying...');
         continue;
       }
+
+      // Recompute summary from actual courses (don't trust AI math)
+      parsed.summary = {
+        total_courses: parsed.courses.length,
+        total_credits: parsed.courses.reduce((s, c) => s + (parseInt(c.credits) || 0), 0),
+        total_theory: parsed.courses.filter(c => c.type === 'theory').length,
+        total_labs: parsed.courses.filter(c => c.type === 'lab').length
+      };
 
       // Defaults
       for (const c of parsed.courses) {
@@ -194,7 +188,8 @@ async function parseSyllabus(syllabusText, semester) {
 
     } catch (err) {
       console.error(`[AI Parser] ✗ Attempt ${attempt + 1}: ${err.message}`);
-      if (attempt === 1) throw new Error('AI failed: ' + err.message);
+      // Throw on last attempt
+      if (attempt >= maxAttempts - 1) throw new Error('AI failed: ' + err.message);
     }
   }
 }
