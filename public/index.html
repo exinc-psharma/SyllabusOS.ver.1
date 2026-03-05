@@ -229,14 +229,11 @@
                     </button>
                 </div>
 
-                <div class="charts-row">
-                    <div class="card-section">
-                        <h2>Credits Distribution</h2>
+                <div class="card-section credits-full">
+                    <h2>Credits Distribution</h2>
+                    <div class="credits-layout">
                         <div class="chart-container"><canvas id="credits-chart"></canvas></div>
-                    </div>
-                    <div class="card-section">
-                        <h2>Units per Subject</h2>
-                        <div class="chart-container"><canvas id="units-chart"></canvas></div>
+                        <div class="credits-legend" id="credits-legend"></div>
                     </div>
                 </div>
 
@@ -248,6 +245,29 @@
                     <div class="card-section">
                         <h2>Chronological Timeline</h2>
                         <div class="timeline" id="timeline-view"></div>
+                    </div>
+                </div>
+
+                <div class="card-section semester-dates-card">
+                    <h2>📅 Semester Schedule</h2>
+                    <p style="font-size:0.75rem;color:var(--text-muted);margin-bottom:0.75rem">Enter your dates to
+                        generate a personalized study plan and busy week detection.</p>
+                    <div class="dates-row">
+                        <div class="date-field">
+                            <label for="date-start">Semester Start</label>
+                            <input type="date" id="date-start">
+                        </div>
+                        <div class="date-field">
+                            <label for="date-midsem">Mid-Sem Exams</label>
+                            <input type="date" id="date-midsem">
+                        </div>
+                        <div class="date-field">
+                            <label for="date-endsem">End-Term Exams</label>
+                            <input type="date" id="date-endsem">
+                        </div>
+                        <button id="generate-schedule-btn" class="primary-btn"
+                            style="align-self:flex-end;padding:0.55rem 1.25rem;font-size:0.8125rem">Generate
+                            Schedule</button>
                     </div>
                 </div>
 

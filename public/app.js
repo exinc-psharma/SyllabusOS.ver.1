@@ -337,7 +337,6 @@ function populateDashboard(resp) {
     try {
         if (courses.length > 0) {
             renderCreditsChart(courses);
-            renderUnitsChart(courses);
         } else {
             renderWeightChart(deliverables);
             renderCategoryChart(deliverables);
@@ -385,8 +384,41 @@ function populateDashboard(resp) {
         `).join('');
     }
 
-    try { renderBusyWeeks(courses, deliverables, mode); } catch (e) { console.error('BusyWeeks error:', e); }
-    try { renderStudyPlan(courses); } catch (e) { console.error('StudyPlan error:', e); }
+    // Initial empty states for schedule sections
+    $('busy-weeks-list').innerHTML = '<div class="empty-state"><span>Enter dates above to generate busy weeks.</span></div>';
+    $('study-plan-list').innerHTML = '<div class="empty-state"><span>Enter dates above to generate study plan.</span></div>';
+
+    // Hook up schedule generation
+    const genBtn = $('generate-schedule-btn');
+    if (genBtn) {
+        // Remove old listener if it exists to avoid multi-calls on re-upload
+        const newBtn = genBtn.cloneNode(true);
+        genBtn.parentNode.replaceChild(newBtn, genBtn);
+
+        newBtn.addEventListener('click', () => {
+            const startStr = $('date-start').value;
+            const midStr = $('date-midsem').value;
+            const endStr = $('date-endsem').value;
+
+            if (!startStr || !midStr || !endStr) {
+                showToast('Please select all three dates.', 'error');
+                return;
+            }
+
+            const startD = new Date(startStr);
+            const midD = new Date(midStr);
+            const endD = new Date(endStr);
+
+            if (midD <= startD || endD <= midD) {
+                showToast('Dates must be strictly chronological.', 'error');
+                return;
+            }
+
+            try { renderBusyWeeksCustom(courses, startD, midD, endD); } catch (e) { console.error('BusyWeeks error:', e); }
+            try { renderStudyPlanCustom(courses, startD, midD, endD); } catch (e) { console.error('StudyPlan error:', e); }
+        });
+    }
+
     try { renderInsights(courses, deliverables, mode); } catch (e) { console.error('Insights error:', e); }
 }
 
@@ -406,22 +438,22 @@ function renderCreditsChart(courses) {
     const ctx = $('credits-chart').getContext('2d');
     const map = {}; courses.forEach(c => { map[c.course_name || c.type] = parseInt(c.credits) || 0; });
     if (creditsChart) creditsChart.destroy();
+
+    // Build custom HTML legend
+    const legendEl = $('credits-legend');
+    let legendHtml = '';
+    const keys = Object.keys(map);
+    const values = Object.values(map);
+    keys.forEach((label, i) => {
+        const color = COLORS[i % COLORS.length];
+        legendHtml += `<div class="legend-item"><div class="legend-dot" style="background:${color}"></div><div class="legend-label">${label}</div><div class="legend-value">${values[i]} cr</div></div>`;
+    });
+    legendEl.innerHTML = legendHtml;
+
     creditsChart = new Chart(ctx, {
         type: 'doughnut',
-        data: { labels: Object.keys(map), datasets: [{ data: Object.values(map), backgroundColor: COLORS, borderWidth: 2, borderColor: '#0F172A', hoverOffset: 4 }] },
-        options: { responsive: true, maintainAspectRatio: true, cutout: '55%', plugins: { legend: { position: 'bottom', labels: { usePointStyle: true, padding: 10, font: { family: 'Inter', size: 10, weight: '500' }, color: '#94A3B8' } } } }
-    });
-}
-
-function renderUnitsChart(courses) {
-    const ctx = $('units-chart').getContext('2d');
-    const withUnits = courses.filter(c => c.units && c.units.length > 0);
-    if (withUnits.length === 0) { ctx.canvas.parentElement.innerHTML = '<div class="empty-state"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="9" y1="9" x2="15" y2="15"/><line x1="15" y1="9" x2="9" y2="15"/></svg><span>No detailed unit breakdown detected in the syllabus.</span></div>'; return; }
-    if (unitsChart) unitsChart.destroy();
-    unitsChart = new Chart(ctx, {
-        type: 'bar',
-        data: { labels: withUnits.map(c => c.course_code || c.course_name.slice(0, 12)), datasets: [{ label: 'Units', data: withUnits.map(c => c.units.length), backgroundColor: '#6366F1', borderRadius: 4, barThickness: 24 }] },
-        options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { stepSize: 1, font: { size: 10 }, color: '#94A3B8' }, grid: { color: '#334155' } }, x: { ticks: { font: { size: 9 }, color: '#94A3B8' }, grid: { display: false } } } }
+        data: { labels: keys, datasets: [{ data: values, backgroundColor: COLORS, borderWidth: 2, borderColor: '#0F172A', hoverOffset: 4 }] },
+        options: { responsive: true, maintainAspectRatio: true, cutout: '60%', plugins: { legend: { display: false } } }
     });
 }
 
@@ -448,41 +480,44 @@ function renderCategoryChart(deliverables) {
 }
 
 // ─── BUSY WEEKS ──────────────────────────────────────────────────────
-function renderBusyWeeks(courses, deliverables, mode) {
+function renderBusyWeeksCustom(courses, startD, midD, endD) {
     const el = $('busy-weeks-list');
-    if (mode === 'deadline' || mode === 'mixed') {
-        const withDates = deliverables.filter(d => d.date);
-        if (withDates.length === 0) { el.innerHTML = '<p style="color:var(--text-muted);font-size:0.8125rem">No deadline data.</p>'; return; }
-        const weeks = {};
-        withDates.forEach(d => { const dt = new Date(d.date); const day = dt.getDay(); const diff = dt.getDate() - day + (day === 0 ? -6 : 1); const mon = new Date(dt.setDate(diff)); const key = mon.toISOString().split('T')[0]; if (!weeks[key]) weeks[key] = { tasks: [], weight: 0 }; weeks[key].tasks.push(d); weeks[key].weight += parseInt(d.weight) || 0; });
-        const sorted = Object.entries(weeks).sort((a, b) => a[0].localeCompare(b[0]));
-        const maxW = Math.max(...sorted.map(([, v]) => v.weight), 1);
-        el.innerHTML = sorted.map(([k, v]) => {
-            const lvl = v.weight >= 40 || v.tasks.length >= 3 ? 'high' : (v.weight >= 20 ? 'moderate' : 'normal');
-            const cls = lvl === 'high' ? 'high-load' : (lvl === 'moderate' ? 'moderate-load' : '');
-            const tag = lvl !== 'normal' ? `<span class="load-tag ${lvl}">${lvl === 'high' ? 'Busy' : 'Moderate'}</span>` : '';
-            return `<div class="busy-week-item ${cls}"><div class="busy-week-header">Week of ${new Date(k).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} ${tag}</div><div class="busy-week-detail">${v.tasks.length} task(s) · ${v.weight}% weight</div><div class="busy-week-bar"><div class="busy-week-bar-fill ${lvl}" style="width:${(v.weight / maxW * 100)}%"></div></div></div>`;
-        }).join('');
-    } else {
-        const heavy = courses.filter(c => (parseInt(c.credits) || 0) >= 3).sort((a, b) => (parseInt(b.credits) || 0) - (parseInt(a.credits) || 0));
-        if (heavy.length === 0) { el.innerHTML = '<p style="color:var(--text-muted);font-size:0.8125rem">No workload data.</p>'; return; }
-        el.innerHTML = heavy.map(c => `
-            <div class="busy-week-item high-load">
-                <div class="busy-week-header">${c.course_name} <span class="load-tag high">${c.credits} cr</span></div>
-                <div class="busy-week-detail">${c.units ? c.units.length + ' units' : ''} · ${c.estimated_effort || 'Medium'} effort</div>
-                <div class="busy-week-bar"><div class="busy-week-bar-fill high" style="width:${Math.min(100, (parseInt(c.credits) / 5) * 100)}%"></div></div>
-            </div>
-        `).join('');
-    }
+
+    // Calculate weeks before exams
+    const msWeekStart = new Date(midD);
+    msWeekStart.setDate(msWeekStart.getDate() - 7);
+
+    const endWeekStart = new Date(endD);
+    endWeekStart.setDate(endWeekStart.getDate() - 10);
+
+    const fmt = d => d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+
+    let html = `
+        <div class="busy-week-item moderate-load">
+            <div class="busy-week-header">Week of ${fmt(msWeekStart)} <span class="load-tag moderate">Moderate</span></div>
+            <div class="busy-week-detail">Mid-Sem Preparation · Focus on Units 1-2</div>
+            <div class="busy-week-bar"><div class="busy-week-bar-fill moderate" style="width:70%"></div></div>
+        </div>
+        <div class="busy-week-item high-load">
+            <div class="busy-week-header">Week of ${fmt(endWeekStart)} <span class="load-tag high">Busy</span></div>
+            <div class="busy-week-detail">Finals Preparation · Focus on Units 3-4+</div>
+            <div class="busy-week-bar"><div class="busy-week-bar-fill high" style="width:95%"></div></div>
+        </div>
+    `;
+
+    el.innerHTML = html;
 }
 
 // ─── STUDY PLAN ──────────────────────────────────────────────────────
-function renderStudyPlan(courses) {
+function getWeeksBetween(d1, d2) {
+    return Math.max(1, Math.round((d2 - d1) / (7 * 24 * 60 * 60 * 1000)));
+}
+
+function renderStudyPlanCustom(courses, startD, midD, endD) {
     const el = $('study-plan-list');
     const withUnits = courses.filter(c => c.units && c.units.length > 0);
     if (withUnits.length === 0) { el.innerHTML = '<div class="empty-state"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg><span>No unit data for study planning.</span></div>'; return; }
 
-    // Build items with topic details
     const buildItems = (unitFilter) => {
         const items = [];
         withUnits.forEach(c => {
@@ -498,57 +533,60 @@ function renderStudyPlan(courses) {
         return items;
     };
 
-    // Phase 1: Mid-sem prep (Units 1 & 2)
     const midSem = buildItems(idx => idx < 2);
-    // Phase 2: Finals prep (Units 3, 4+)
     const finals = buildItems(idx => idx >= 2);
 
-    // Build week blocks (2 items per week)
-    const buildWeeks = (items, startWeek) => {
-        const weeks = [];
-        for (let i = 0; i < items.length; i += 2) {
-            const weekNum = startWeek + Math.floor(i / 2);
-            weeks.push({ week: weekNum, items: items.slice(i, i + 2) });
-        }
-        return weeks;
+    const midWeeksCount = getWeeksBetween(startD, midD);
+    const finalWeeksCount = getWeeksBetween(midD, endD);
+
+    const chunkArray = (arr, numChunks) => {
+        const chunks = Array.from({ length: numChunks }, () => []);
+        arr.forEach((item, i) => chunks[i % numChunks].push(item));
+        return chunks;
     };
 
-    const midWeeks = buildWeeks(midSem, 1);
-    const finalWeeks = buildWeeks(finals, midWeeks.length + 1);
-    const labs = courses.filter(c => c.type === 'lab');
+    const midChunks = chunkArray(midSem, midWeeksCount);
+    const finalChunks = chunkArray(finals, finalWeeksCount);
 
-    // Render a study item with optional topic details
     const renderItem = b => {
         let label = `${b.course} — ${b.unit}`;
-        const topicHint = b.topics ? `<div class="study-item" style="color:var(--text-muted);font-size:0.5625rem;padding-left:0.875rem;opacity:0.8">↳ ${b.topics}</div>` : '';
+        const topicHint = b.topics ? `<div class="study-item" style="color:var(--text-muted);font-size:0.5625rem;padding-left:0.875rem;opacity:0.8;margin-top:2px;">↳ ${b.topics}</div>` : '';
         return `<div class="study-item"><span class="study-dot" style="background:${b.color}"></span>${label}</div>${topicHint}`;
     };
 
+    const addDays = (date, days) => { const d = new Date(date); d.setDate(d.getDate() + days); return d; };
+    const fmt = d => d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+
     let html = '';
 
-    // Mid-sem phase
     if (midSem.length > 0) {
         html += '<div class="study-week-block" style="border-left-color:var(--confidence-mid)"><div class="study-week-title" style="color:var(--confidence-mid)">📝 Mid-Sem Preparation</div><div class="study-week-items"><div class="study-item" style="color:var(--text-muted);font-size:0.625rem">Focus on Units 1 & 2 of each subject</div></div></div>';
-        html += midWeeks.map(w => `
-            <div class="study-week-block"><div class="study-week-title">Week ${w.week}–${w.week + 1}</div><div class="study-week-items">${w.items.map(renderItem).join('')}</div></div>
-        `).join('');
+        midChunks.forEach((chunk, i) => {
+            if (chunk.length === 0) return;
+            const wStart = addDays(startD, i * 7);
+            const wEnd = addDays(wStart, 6);
+            html += `<div class="study-week-block"><div class="study-week-title">Week of ${fmt(wStart)} – ${fmt(wEnd)}</div><div class="study-week-items">${chunk.map(renderItem).join('')}</div></div>`;
+        });
     }
 
-    // Finals phase
     if (finals.length > 0) {
         html += '<div class="study-week-block" style="border-left-color:var(--exam)"><div class="study-week-title" style="color:var(--exam)">🎯 Finals Preparation</div><div class="study-week-items"><div class="study-item" style="color:var(--text-muted);font-size:0.625rem">Units 3, 4+ — complete remaining syllabus</div></div></div>';
-        html += finalWeeks.map(w => `
-            <div class="study-week-block"><div class="study-week-title">Week ${w.week}–${w.week + 1}</div><div class="study-week-items">${w.items.map(renderItem).join('')}</div></div>
-        `).join('');
+        finalChunks.forEach((chunk, i) => {
+            if (chunk.length === 0) return;
+            const wStart = addDays(midD, i * 7);
+            const wEnd = addDays(wStart, 6);
+            html += `<div class="study-week-block"><div class="study-week-title">Week of ${fmt(wStart)} – ${fmt(wEnd)}</div><div class="study-week-items">${chunk.map(renderItem).join('')}</div></div>`;
+        });
     }
 
-    // Labs ongoing
+    const labs = courses.filter(c => c.type === 'lab');
     if (labs.length > 0) {
         html += `<div class="study-week-block" style="border-left-color:var(--lab)"><div class="study-week-title" style="color:var(--lab)">🔬 Ongoing Labs</div><div class="study-week-items">${labs.map(l => `<div class="study-item"><span class="study-dot" style="background:var(--lab)"></span>${l.course_name} (${l.credits} cr)</div>`).join('')}</div></div>`;
     }
 
     el.innerHTML = html;
 }
+
 
 // ─── AI INSIGHTS ─────────────────────────────────────────────────────
 function renderInsights(courses, deliverables, mode) {

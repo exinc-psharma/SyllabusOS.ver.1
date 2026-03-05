@@ -1,5 +1,353 @@
 [
   {
+    "id": "mmd2ym2rshol",
+    "name": "Demo",
+    "rawText": "ECE Semester V — USICT, GGSIPU (2024-25)\n\nECC-501 Digital Signal Processing | 4 Credits | Theory | Core\nInternal: 40 | End Term: 60\nUnit I: Discrete-Time Signals, Z-Transform, Region of Convergence, Inverse Z-Transform\nUnit II: DFT Properties, FFT Algorithms (Radix-2 DIT, DIF), Circular Convolution\nUnit III: IIR Filter Design, Butterworth Filters, Chebyshev Filters, Bilinear Transformation\nUnit IV: FIR Filter Design, Window Techniques (Hamming, Hanning, Kaiser), Linear Phase Filters\n\nECC-503 Microprocessors & Microcontrollers | 4 Credits | Theory | Core\nInternal: 40 | End Term: 60\nUnit I: 8086 Architecture, Pin Configuration, Addressing Modes, Instruction Set\nUnit II: Assembly Language Programming, Interrupts, DMA, 8259 PIC, 8257 DMA Controller\nUnit III: 8051 Microcontroller Architecture, I/O Ports, Timers/Counters, Serial Communication\nUnit IV: Interfacing ADC/DAC, LCD, Stepper Motor, Keyboard, Memory Interfacing\n\nECC-505 Data Communication & Networks | 4 Credits | Theory | Core\nInternal: 40 | End Term: 60\nUnit I: Data Communication Fundamentals, Transmission Media, Multiplexing (TDM, FDM, WDM)\nUnit II: Data Link Layer Protocols, Error Detection & Correction, Flow Control, HDLC\nUnit III: Network Layer, IP Addressing, Subnetting, Routing Algorithms (OSPF, BGP, RIP)\nUnit IV: Transport Layer, TCP/UDP, Congestion Control, Application Layer Protocols (HTTP, DNS, FTP)\n\nECC-507 Control Systems | 3 Credits | Theory | Core\nInternal: 40 | End Term: 60\nUnit I: Open & Closed Loop Systems, Transfer Functions, Block Diagram Reduction, Signal Flow Graphs\nUnit II: Time Domain Analysis, Transient Response, Steady State Error, Routh-Hurwitz Stability\nUnit III: Root Locus Technique, Frequency Response, Bode Plot, Nyquist Stability Criterion\nUnit IV: State Space Analysis, Controllability, Observability, PID Controller Design\n\nECC-509 Electromagnetic Field Theory | 3 Credits | Theory | Core\nInternal: 40 | End Term: 60\nUnit I: Vector Calculus Review, Coulomb's Law, Electric Field Intensity, Gauss's Law\nUnit II: Laplace & Poisson Equations, Capacitance, Biot-Savart Law, Ampere's Law\nUnit III: Maxwell's Equations, Electromagnetic Wave Propagation, Poynting Vector\nUnit IV: Transmission Lines, Smith Chart, Impedance Matching, Standing Wave Ratio\n\nECC-511 VLSI Design | 3 Credits | Theory | Elective\nInternal: 40 | End Term: 60\nUnit I: MOS Transistor Theory, CMOS Inverter, Noise Margins, Power Dissipation\nUnit II: Combinational Logic Design, CMOS Logic Gates, Pass Transistor Logic, Dynamic Logic\nUnit III: Sequential Logic, Flip-Flops, Memory Design (SRAM, DRAM), Clock Distribution\nUnit IV: VLSI Testing, DFT Techniques, FPGA Architecture, HDL-based Design Flow\n\nECC-551 DSP Lab | 1 Credit | Lab\nInternal: 40 | End Term: 60\n\nECC-553 Microprocessors Lab | 1 Credit | Lab\nInternal: 40 | End Term: 60\n\nECC-555 Data Communication Lab | 1 Credit | Lab\nInternal: 40 | End Term: 60\n\nECC-557 Control Systems Lab | 1 Credit | Lab\nInternal: 40 | End Term: 60\n\nECC-559 VLSI Design Lab | 1 Credit | Lab\nInternal: 40 | End Term: 60",
+    "result": {
+      "summary": {
+        "total_courses": 11,
+        "total_credits": 26,
+        "total_theory": 6,
+        "total_labs": 5
+      },
+      "courses": [
+        {
+          "course_name": "Digital Signal Processing",
+          "course_code": "ECC-501",
+          "credits": "4",
+          "type": "theory",
+          "category": "core",
+          "semester": "V",
+          "internal_marks": "40",
+          "end_term_marks": "60",
+          "confidence": 1,
+          "units": [
+            {
+              "unit": "Unit I",
+              "topics": [
+                "Discrete-Time Signals",
+                "Z-Transform",
+                "Region of Convergence"
+              ]
+            },
+            {
+              "unit": "Unit II",
+              "topics": [
+                "DFT Properties",
+                "FFT Algorithms",
+                "Circular Convolution"
+              ]
+            },
+            {
+              "unit": "Unit III",
+              "topics": [
+                "IIR Filter Design",
+                "Butterworth Filters",
+                "Chebyshev Filters"
+              ]
+            },
+            {
+              "unit": "Unit IV",
+              "topics": [
+                "FIR Filter Design",
+                "Window Techniques",
+                "Linear Phase Filters"
+              ]
+            }
+          ]
+        },
+        {
+          "course_name": "Microprocessors & Microcontrollers",
+          "course_code": "ECC-503",
+          "credits": "4",
+          "type": "theory",
+          "category": "core",
+          "semester": "V",
+          "internal_marks": "40",
+          "end_term_marks": "60",
+          "confidence": 1,
+          "units": [
+            {
+              "unit": "Unit I",
+              "topics": [
+                "8086 Architecture",
+                "Pin Configuration",
+                "Addressing Modes"
+              ]
+            },
+            {
+              "unit": "Unit II",
+              "topics": [
+                "Assembly Language Programming",
+                "Interrupts",
+                "DMA"
+              ]
+            },
+            {
+              "unit": "Unit III",
+              "topics": [
+                "8051 Microcontroller Architecture",
+                "I/O Ports",
+                "Timers/Counters"
+              ]
+            },
+            {
+              "unit": "Unit IV",
+              "topics": [
+                "Interfacing ADC/DAC",
+                "LCD",
+                "Stepper Motor"
+              ]
+            }
+          ]
+        },
+        {
+          "course_name": "Data Communication & Networks",
+          "course_code": "ECC-505",
+          "credits": "4",
+          "type": "theory",
+          "category": "core",
+          "semester": "V",
+          "internal_marks": "40",
+          "end_term_marks": "60",
+          "confidence": 1,
+          "units": [
+            {
+              "unit": "Unit I",
+              "topics": [
+                "Data Communication Fundamentals",
+                "Transmission Media",
+                "Multiplexing"
+              ]
+            },
+            {
+              "unit": "Unit II",
+              "topics": [
+                "Data Link Layer Protocols",
+                "Error Detection & Correction",
+                "Flow Control"
+              ]
+            },
+            {
+              "unit": "Unit III",
+              "topics": [
+                "Network Layer",
+                "IP Addressing",
+                "Subnetting"
+              ]
+            },
+            {
+              "unit": "Unit IV",
+              "topics": [
+                "Transport Layer",
+                "TCP/UDP",
+                "Congestion Control"
+              ]
+            }
+          ]
+        },
+        {
+          "course_name": "Control Systems",
+          "course_code": "ECC-507",
+          "credits": "3",
+          "type": "theory",
+          "category": "core",
+          "semester": "V",
+          "internal_marks": "40",
+          "end_term_marks": "60",
+          "confidence": 1,
+          "units": [
+            {
+              "unit": "Unit I",
+              "topics": [
+                "Open & Closed Loop Systems",
+                "Transfer Functions",
+                "Block Diagram Reduction"
+              ]
+            },
+            {
+              "unit": "Unit II",
+              "topics": [
+                "Time Domain Analysis",
+                "Transient Response",
+                "Steady State Error"
+              ]
+            },
+            {
+              "unit": "Unit III",
+              "topics": [
+                "Root Locus Technique",
+                "Frequency Response",
+                "Bode Plot"
+              ]
+            },
+            {
+              "unit": "Unit IV",
+              "topics": [
+                "State Space Analysis",
+                "Controllability",
+                "PID Controller Design"
+              ]
+            }
+          ]
+        },
+        {
+          "course_name": "Electromagnetic Field Theory",
+          "course_code": "ECC-509",
+          "credits": "3",
+          "type": "theory",
+          "category": "core",
+          "semester": "V",
+          "internal_marks": "40",
+          "end_term_marks": "60",
+          "confidence": 1,
+          "units": [
+            {
+              "unit": "Unit I",
+              "topics": [
+                "Vector Calculus Review",
+                "Coulomb's Law",
+                "Electric Field Intensity"
+              ]
+            },
+            {
+              "unit": "Unit II",
+              "topics": [
+                "Laplace & Poisson Equations",
+                "Capacitance",
+                "Biot-Savart Law"
+              ]
+            },
+            {
+              "unit": "Unit III",
+              "topics": [
+                "Maxwell's Equations",
+                "Electromagnetic Wave Propagation",
+                "Poynting Vector"
+              ]
+            },
+            {
+              "unit": "Unit IV",
+              "topics": [
+                "Transmission Lines",
+                "Smith Chart",
+                "Impedance Matching"
+              ]
+            }
+          ]
+        },
+        {
+          "course_name": "VLSI Design",
+          "course_code": "ECC-511",
+          "credits": "3",
+          "type": "theory",
+          "category": "elective",
+          "semester": "V",
+          "internal_marks": "40",
+          "end_term_marks": "60",
+          "confidence": 1,
+          "units": [
+            {
+              "unit": "Unit I",
+              "topics": [
+                "MOS Transistor Theory",
+                "CMOS Inverter",
+                "Noise Margins"
+              ]
+            },
+            {
+              "unit": "Unit II",
+              "topics": [
+                "Combinational Logic Design",
+                "CMOS Logic Gates",
+                "Pass Transistor Logic"
+              ]
+            },
+            {
+              "unit": "Unit III",
+              "topics": [
+                "Sequential Logic",
+                "Flip-Flops",
+                "Memory Design"
+              ]
+            },
+            {
+              "unit": "Unit IV",
+              "topics": [
+                "VLSI Testing",
+                "DFT Techniques",
+                "FPGA Architecture"
+              ]
+            }
+          ]
+        },
+        {
+          "course_name": "DSP Lab",
+          "course_code": "ECC-551",
+          "credits": "1",
+          "type": "lab",
+          "category": "lab",
+          "semester": "V",
+          "internal_marks": "40",
+          "end_term_marks": "60",
+          "confidence": 1,
+          "units": []
+        },
+        {
+          "course_name": "Microprocessors Lab",
+          "course_code": "ECC-553",
+          "credits": "1",
+          "type": "lab",
+          "category": "lab",
+          "semester": "V",
+          "internal_marks": "40",
+          "end_term_marks": "60",
+          "confidence": 1,
+          "units": []
+        },
+        {
+          "course_name": "Data Communication Lab",
+          "course_code": "ECC-555",
+          "credits": "1",
+          "type": "lab",
+          "category": "lab",
+          "semester": "V",
+          "internal_marks": "40",
+          "end_term_marks": "60",
+          "confidence": 1,
+          "units": []
+        },
+        {
+          "course_name": "Control Systems Lab",
+          "course_code": "ECC-557",
+          "credits": "1",
+          "type": "lab",
+          "category": "lab",
+          "semester": "V",
+          "internal_marks": "40",
+          "end_term_marks": "60",
+          "confidence": 1,
+          "units": []
+        },
+        {
+          "course_name": "VLSI Design Lab",
+          "course_code": "ECC-559",
+          "credits": "1",
+          "type": "lab",
+          "category": "lab",
+          "semester": "V",
+          "internal_marks": "40",
+          "end_term_marks": "60",
+          "confidence": 1,
+          "units": []
+        }
+      ],
+      "deliverables": [],
+      "source": "ai"
+    },
+    "savedAt": "2026-03-05T06:24:15.939Z"
+  },
+  {
     "id": "mmd1uvcsx1se",
     "name": "CSE",
     "rawText": "\n\n \n \n \nCourse Curriculum\n \nFor\n \nB. Tech. (Computer Science and Engineering)\n \n \n \n \n \n \n \n \n \nDepartment of Computer Science and \nEngineering \n \nNational Institute of Technology Delhi\n \n \nw.e.f. the Academic Year \n \n2022-2023\n\n \n \n \n Course Curriculum - B.Tech (Computer Science and Engineering) NIT Delhi                                   1 \nDepartment of Computer Science and Engineering \n \nNational Institute of Technology Delhi\n \n \n1.1 About the Department\n \n \nThe  Computer  Science  and  Engineering  Department  was  started  in  2010  along  with  the \nfoundation of NIT Delhi. Initially, only the Bachelor of Technology Programme was offered \nwith  the  intake  30  which  presently  has  been  increased  to  60.  Now,  apart  from  B.  Tech.,  the \ndepartment also offers Master of Technology (Analytics) and Ph.D. programmes which cover \na  number  of  important  areas  of  Computer  Science  and  Engineering,  e.g.,  Algorithms, \nComputer  Networks,  Data  Warehousing  and  Data  Mining,  Software  Engineering,  Machine \nLearning,   Image   Processing,   Web   Technologies,   Data   Analytics,   Complex   Networks, \nWireless  Sensor  Networks  etc.  We  provide  our  students  with  a  broad  undergraduate  and \ngraduate  curriculum  based  on  the  application  and  theoretical  foundations  of  computer \nscience. Our faculty and students participate in interdisciplinary research. The combination of \nthese  elements  makes  the  department  an  especially  exciting  environment  in  which  to  study \nand  work;  an  environment  that  serves  us  well  in  our  goal  of  providing  excellence  in \neducation,  research,  and  discovery.  The  department  envisions  producing  quality  graduates, \ncapable  of  leading  the  world  in  the  technical  realm.  The department  is  equipped  with  the \nlatest configuration and high computing system with hi-speed Internet facility, both wired as \nwell  as  wi-fi.  The  Computer  Science  programs  at  this  institute  are  dedicated  to  educate \nstudents  and  to  advance  research  in  computer  and  information  technology.  The  department \nhas all the facilities to carry out the related teaching and research work. \n \n1.2 Vision\n \n \n❑\n To  promote  innovation  centric  education  and  perform  cutting  edge  research  in \nComputer Science and Engineering.  \n❑\n To  build  an  International  reputation  through  continuous  research,  innovation  and \nindustry-led  programs  of  study,  where  faculties  are  committed  to  leading-edge  research  and \ninnovation and student training.  \n \n \n1.3\n \nMission\n \n \n❑\n Facilitate the development of academia-industry collaborations and societal outreach \nprogrammers.  \n❑\n Establish nationally and internationally recognized research activities and expose \nstudents to extensive research experience.  \n❑\n Pass on moral and ethical values and interpersonal competencies to students.  \n \n\n \n \n \n Course Curriculum - B.Tech (Computer Science and Engineering) NIT Delhi                                   2 \nB. Tech. (Computer Science and Engineering)\n \n \n2.1 Preamble  \n \n \nB.  Tech.  (Computer  Science  and  Engineering): \nThe  objective  of  the  B.Tech  program  in \nComputer  Science  and  Engineering  (CSE)  is  to  prepare  students to  undertake  careers \ninvolving innovation and problem solving using computational techniques and technologies, \nor  to  undertake  advanced  studies  for  research  careers.  In  order  to  give  due  importance  to \napplied  as  well  as  theoretical  aspects  of  computing,  the  curriculum  for  the  B.Tech  (CSE) \nprogram covers most of the foundational aspects of computing sciences, and also develops in \nstudents  the  engineering  skills  for  problem  solving  using  computing  sciences.  The  program \noffered  at  NIT  Delhi  is  designed  to  equip  students  with  a  unique  blend  of  skill  sets  that \ninclude: \n \n● Life skills orientation \n● Predominantly   practice-oriented   approach   with   access   to   well-equipped   and \nspecialized laboratories, and supervised internship, projects, dissertation and Ph.D Thesis. \n● Hands-on technical training \n● Business perspective, along with emphasis on innovation and entrepreneurship \n● Strong theoretical foundation for computer science and engineering \n● Hard and soft skills \n● Strong research environment \n● Participate in the R&D and industrial projects. \n \n2.2  Salient Features\n \n \n● Minimum Credits requirements for completion of BTech program is 160. \n● The  Curriculum  is  based  on  the  guidelines  of  National  Education  Policy  (NEP) – \n 2020. \n● The curriculum has embedded the Multi Exit/ Multi Entry in the BTech program.  \n● There is provision of Major degree and Minor Degree for students.  \n● The   curriculum   is   designed   to   meet   the   prevailing   and   ongoing   industrial \n requirements.  \n● The curriculum includes Project based Education with Projects every year.  \n● The curriculum is flexible and offers Choice Based Credit System (CBCS).  \n● The  curriculum  inherits  the  Value  based  Education  and  offers  Interdisciplinary/ \n Multidisciplinary Courses.   \n● The   Curriculum   offers   Digital   Pedagogy   &   Flipped   Learning   with   adequate \n motivation for Entrepreneurship/ Startups. \n● The curriculum aims at the Holistic Development of the students.  \n● In  the  proposed  UG  scheme  the  CSE  department  is  proposing  in  05  different \n following specializations: \n1. Artificial Intelligence and Machine Learning (Bouquet 1) \n2. Data Science (Bouquet 2) \n3. Information Security (Bouquet 3) \n4. Computer Systems (Bouquet 4) \n\n \n \n \n Course Curriculum - B.Tech (Computer Science and Engineering) NIT Delhi                                   3 \n5. Networks and Distributed Systems (Bouquet 5) \n● Total \n7  electives\n are  proposed  in  the  complete  UG  program  among  them \nat  least  5 \nelectives\n are  required  from  a  bouquet  to  get  the  specialization  (with  the  respective  bouquet) \nwith B.Tech in Computer Science and Engineering. \n● Students  can  attend  2  MOOC/NPTEL/any  online  courses  (as  per  department  list)  among \nthe proposed \n7 electives\n and the evaluation will be done by the Department as per Academic \nCalendar and prevailing norms. \n● Students  can  do  any  number  of  courses  from  the  other  IITs/NITs/or  any  other  CFTI \ninstitutes. There will be the provision of credit transfer as per NIT Delhi norms. \n● If  any  student  from  the  other  branch  will  do \n4  courses  (16  credits)  and  one  project  (2 \ncredits)\n from a bouquet and \none project\n (from the CSE UG scheme), then the student will be \nawarded  the \nminor  degree  in  Computer  Science  and  Engineering  with  the  respective \nbouquet specialization. \nThe project should be approved by the CSE dept. Hence, in a minor \ndegree a student should complete \n18 credits other than the desired credits \nof his/her major \ndegree. \n \n2.3  Cardinal Mentions\n \n \n✔\n \nThe  students  can  exit  after completing  1\nst\n Year,  2\nnd\n Year  and  3\nrd\n Year  from  the  programme \nand  will  be  awarded  Certificate,  Diploma  and  Advanced  Diploma  in  Computer  Science  and \nEngineering respectively. A minimum Credit requirement for Certificate is 40 Credits, Diploma is 80 \nCredits and Advanced Diploma is 120 Credits respectively.  \n \n \n✔\n \nThe other branches students can opt for Minor Degree in Computer Science and Engineering \nacross any specialization offered by the department from 5\nth\n Semester onwards by obtaining 18 credits \nfrom Computer Science and Engineering (16 credits in course work and  02 credits in projects) from \nthe respective specializations.\n \n \n \n2.4 Program Educational Objectives (PEOs) \n \n \nPEO-1\n Students  will  establish  themselves  as  influential  professionals  by  solving  real problems \nthrough   computer   science   knowledge   and   with   attention   to   teamwork,   effective \ncommunication, critical thinking, and problem-solving skills. \nPEO-2\n Able to draw upon foundational knowledge, learn, adapt, and successfully bring analytical \nand computational approaches to changing societal and technological challenges. \nPEO-3\n Students will develop professional skills that prepare them for immediate employment and \nlife-long learning in advanced areas of computer science and related fields. \nPEO-4\n Inspiring and Collaborative: A leader and a responsible citizen whose strengths come from \nan ability to draw on and contribute to diverse teams, expertise, and experiences. \nPEO-5\n Students  will  demonstrate  their  ability  to  adapt  to  a  rapidly  changing  environment  by \nlearning and applying new skills and technologies. \nPEO-6\n Innovative:  Drives  scientific  and  societal  advancement  through  technological  innovation \nand entrepreneurship. \nPEO-7\n Students  will  be  prepared  for  excellence  and  leadership  roles  along diverse  career  paths, \nencouraging professional ethics and active participation needed for a successful career. \nPEO-8 \nStrong  computer  science  and  engineering  foundation  for  implementing  research  and \n\n \n \n \n Course Curriculum - B.Tech (Computer Science and Engineering) NIT Delhi                                   4 \nproduct development in core computer systems. \n \n \n2.5 Program Specific Objectives (PSOs) \n \n \nPSO -1 \n \n \nStudents will be able to analyze, interpret and provide solutions to the advanced software \ntools for designing real-life computer science and engineering problems. \nPSO -2\n Ability  to  solve  complex  Knowledge Engineering  problems  by  building  systems  across \nvarious domains, including Systems  Engineering, Software  Development & Engineering, \nNetworks & Security, Data Mining, and Artificial Intelligence. \nPSO -3 \n \n \nStudents  can  pursue  higher  studies  to  contribute  to research  and  development  and \nparticipate in entrepreneurial careers. \nPSO -4\n Ability  to  apply  technical  and  research-based  skills  learned  through  professional  society \nevents, certification programs, projects, and lab exercises to provide sustainable solutions \nto Computer Science and Engineering problems related to society and the environment. \nPSO -5\n Ability  to  practice  as  an  ethical  Software  Engineer  or  Researcher  in  the  evolving \ndisciplines  of  Computer  Science  and  Engineering  and  its  allied  application  domains  by \nemploying  soft and  project  management  skills  learned  through  internships,  project  work, \nand collaborative projects with industry. \n \n3.1 Semester wise Credit Structure \n \n \nSl. \nNo\n.\n \n \nCourses\n \nCredits\n  \nTota\nl\n \n1\nst\n Year\n \n2\nnd\n Year\n \n3\nrd\n Year\n \n4\nth\n Year\n \n1\nst\n \nSem\n \n2\nnd\n \nSem\n \n3\nrd \nSem\n \n4\nth\n \nSem\n \n5\nth\n \nSem\n \n6\nth\n \nSem\n \n7\nth\n \nSem\n \n8\nth\n \nSem\n \n1 Programme Core  \n8 11 12 12 12 15 16 4 66\n \n2 Programme \nElectives  \n0 0 0 0 4 8  16 0 28\n \n3 Open Electives  \n0 0 0 0 0 3 0 0 \n3\n \n4 Applied Sciences  \n8 4 4 0 4 0 0 0 20\n \n5 Humanities \n4 0 0 3 0 0 3 0 10\n \n6 Summer Training & \nProject \n0 2 0 1 0 2 1 16 \n22\n \n7 Allied Engineering  \n0 3 4 4 0 0 0 0 \n11\n \nTotal\n \n20\n \n20\n \n20\n \n20\n \n20\n \n20\n \n20\n \n20\n \n160\n \n \n3.2 Credits Distribution \n\n \n \n \n Course Curriculum - B.Tech (Computer Science and Engineering) NIT Delhi                                   5 \n \n \n3.3 Credits Distribution (%) \n \n \n4.1       Course Scheme\n \nSEMESTER – I \n \nS. No. Course Code Course Name L T P Credits \n1.  \nCSB 101 Problem Solving & Computer Programming  3 0 2 4 \n2.  \nCSB 102 Introduction to Computer Systems 3 0 2 4 \n3.  \nMAL 101 Advanced Calculus  3 1 0 4 \nProgramme Core  \nProgramme Electives  \nOpen Electives  \nApplied Sciences  \nHumanities \nSummer Training & Project \nAllied Engineering  \n0 10 20 30 40 50 60 70 \n41.25 \n17.5 \n1.875 \n12.5 \n6.25 \n13.75 \n6.875 \nProgramme Core  \nProgramme Electives  \nOpen Electives  \nApplied Sciences  \nHumanities \nSummer Training & \nProject \nAllied Engineering  \n\n \n \n \n Course Curriculum - B.Tech (Computer Science and Engineering) NIT Delhi                                   6 \n4.  \nHMB 101 Theory and Practices of Human Ethics 2 0 2 3 \n5.  \nMEB 162 Engineering Visualization 3 0 2 4 \n6.  \nHMP 102 Communication Skills 0 0 2 1 \n7.  \nEAP 101 Extra Academic Activity - - - - \nTotal Credits    20 \n \nSEMESTER – II\n \nS. No. Course Code Course Name L T P Credits \n1.  \nCSB 151 \nData Structures 3 0 2 4 \n2.  \nCSL 152 \nDiscrete Structures 3 1 0 4 \n3.  \nCSL 153 \nSystem Programming 3 0 0 3 \n4.  \nMAL 152 \nApplied Linear Algebra \n \n3 1 0 4 \n5.  \nCSP 154 \nIntroduction to Hardware 0 0 2 2 \n6.  \nEVP 102 \nNature and Care 0 0 1 1 \n7.  \nCSP 100 \nProject I 0 0 4 2 \nTotal Credits    20 \n \nSEMESTER – III \n \nS. No. Course Code Course Name L T P Credits \n1.  \nCSB 202 \nDesign and Analysis of Algorithms 3 0 2 4 \n2.  \nECB 206 \nDigital Electronics and Logic Design 3 0 2 4 \n3.  \nCSB 203 \nOperating System 3 0 2 4 \n4.  \nCSB 204 \nDatabase Management Systems 3 0 2 4 \n5.  \nMAL 202 \nProbability and Statistics 3 1 0 4 \nTotal Credits \n \n   20 \n \nSEMESTER – IV \n \nS. No. Course Code Course Name L T P Credits \n1.  \nCSB 251 Computer Architecture and Organization 3 0 2 4 \n\n \n \n \n Course Curriculum - B.Tech (Computer Science and Engineering) NIT Delhi                                   7 \n2.  \nCSB 252 Artificial Intelligence 3 0 2 4 \n3.  \nHMB 251 Professional Communication 2 0 2 3 \n4.  \nCSB 254 Software Engineering 3 0 2 4 \n5.  \nECB 254 Communication Systems 3 0 2 4 \n6.  \nCSP 200 Project II 0 0 2 1 \nTotal Credits    20 \n  \n \nSEMESTER – V \n \nS. No. Course Code Course Name L T P Credits \n1.  \nCSB 301 \nComputer Networks 3 0 2 4 \n2.  \nCSB  304 \nQuantum Computing 3 0 2 4 \n3.  \nCSL 302  \nTheory of Computation 3 1 0 4 \n4.  \nCSB 303 Data Mining 3 0 2 4 \n5.  \nCSX XXX \nElective 1 [Select in Set 1 from the respective \nspecialization] \n3 0 2 4 \nTotal Credits    20 \n \nSEMESTER – VI \n \nS. No. Course Code \nCourse Name L T P Credits \n1.  \nCSB 352 Theory of App Development 2 0 2 3 \n2.  \nCSB 351 \nCompiler Design 3 0 2 4 \n3.  \nXXX XXX \nOpen Elective 3 0 0 3 \n4.  \nCSX XXX \nElective 2[Select in Set 2 from the respective \nspecialization] \n3 0 2 4 \n5.  \nCSX XXX \nElective 3[Select in Set 2 from the respective \nspecialization] \n3 0 2 4 \n6.  \nCSP 300 Project III \n   \n2 \n7.  \nCSP 301 Internship (during summer break) \nCredit will be given in next \nSemester \nTotal Credits \n   20 \n \n \nSEMESTER –VII\n \n\n \n \n \n Course Curriculum - B.Tech (Computer Science and Engineering) NIT Delhi                                   8 \nS. No. Course Code Course Name L T P Credits \n1.  \nCSX XXX \nElective 4 [Select in Set 3 from the respective \nspecialization] \n3 0/1 2/0 4 \n2.  \nCSX XXX \nElective 5 [Select in Set 3 from the respective \nspecialization] \n3 0/1 2/0 4 \n3.  \nCSX XXX \nElective 6 [Select in Set 3 from the respective \nspecialization] \n3 0/1 2/0 4 \n4.  \nCSX XXX \nElective 7 [Select in Set 3 from the respective \nspecialization] \n3 0/1 2/0 4 \n5.  \nHML 401 Management Principles and Practices\n \n3 0 0 3 \n6.  \nCSP 401 \nInternship (completed in last summer break) - - - 1 \nTotal Credits\n    \n20 \n \nSEMESTER – VIII\n \nS. No.\n \nCourse Code\n \nCourse Name\n \nL\n \nT\n \nP\n \nCredits\n \n1.\n \n \nCSP 400 \nB. Tech Project (Internship inside NIT Delhi \n/ Outside NIT Delhi) \n- - - 16 \n2. \nCSL XXX \nIndependent Study \n4 0 0 4 \nTotal Credits\n \n   \n20\n \n \n \n4.2 Program Elective Courses\n \n \nElective Courses\n \nBouquet 1 of Elective Courses [Specialization in Artificial Intelligence and Machine \nLearning]\n \nS. \nNo. \nCourse \nCode \nCourse Name L T P Credits \nSet 1 \n1 CSB 311 Machine Learning 3 0 2 4 \n2 CSB 312 Pattern Recognition 3 0 2 4 \n3 CSB 313 Digital Image Processing  3 0 2 4 \n4 CSB 314 Computer Vision 3 0 2 4 \n5 CSL 315 Optimization Techniques 3 1 0 4 \n6 CSB 405 Fuzzy Logic and Applications 3 0 2 4 \n7 CSB 406 Cloud Computing 3 0 2 4 \nSet 2 \n8 CSB 316 Information Storage & Retrieval 3 0 2 4 \n\n \n \n \n Course Curriculum - B.Tech (Computer Science and Engineering) NIT Delhi                                   9 \n9 CSB 317 Soft Computing 3 0 2 4 \n10 CSB 406 Deep Learning and Applications 3 0 2 4 \n11 CSB 407 Natural Language Processing 3 0 2 4 \n12 CSB 408 \nReinforcement Learning and \nApplications  \n3 0 2 4 \n13 CSB 409 Social Network Analysis 3 0 2 4 \n14 CSB 410 Quantum Machine Learning 3 0 2 4 \n15 CSB 411 Multi Agents 3 0 2 4 \n16 CSB 412 Motion Analytics 3 0 2 4 \n17 CSB 314 Computer Vision 3 0 2 4 \n18 CSL 315 Optimization Techniques 3 1 0 4 \n19 CSB 405 Fuzzy Logic and Applications 3 0 2 4 \nSet 3 \n20\n \nCSB 413 \nIntroduction to Cognitive \nComputing \n3 0 2 4 \n21\n \nCSL 414 Game Theory 3 1 0 4 \n22\n CSB 415 Machine Learning Operations 3 0 2 4 \n23\n \nCSB 405 Fuzzy Logic and Applications 3 0 2 4 \n24\n \nCSB 406 Cloud Computing 3 0 2 4 \n25\n \nCSB 406 Deep Learning and Applications 3 0 2 4 \n26\n \nCSB 407 Natural Language Processing 3 0 2 4 \n27\n \nCSB 408 \nReinforcement Learning and \nApplications  \n3 0 2 4 \n28\n CSB 409 Social Network Analysis 3 0 2 4 \n29\n \nCSB 410 Quantum Machine Learning 3 0 2 4 \n30\n CSB 411 Multi Agents 3 0 2 4 \n31\n \nCSB 412 Motion Analytics 3 0 2 4 \n32\n \nCSB 405 Fuzzy Logic and Applications 3 0 2 4 \n \n \nBouquet 2 [Specialization in Data Science]\n \n \nS. \nNo \nCourse \nCode  \nCourse Name L T P Credits \n Set 1 \n1 \nCSL 321 \nMathematical Foundation of Data Science 3 1 0 4 \n2 \nCSB 311 \nMachine Learning 3 0 2 4 \n3 \nCSB 322 \nIntroduction to Statistical Learning 3 0 2 4 \n4 \nCSL 315 \nOptimization Techniques 3 1 0 4 \n Set 2 \n5 \nCSB 322 Introduction to Statistical Learning \n3 0 2 4 \n6 \nCSL 315 Optimization Techniques \n3 1 0 4 \n7 \nCSB 323 Data Handling & Visualization \n3 0 2 4 \n8 \nCSL 324 \nHigh-Dimensional Probability for \nMathematicians and Data Scientists \n3 1 0 4 \n9 \nCSB 325 Time Series Analysis \n3 0 2 4 \n\n \n \n \n Course Curriculum - B.Tech (Computer Science and Engineering) NIT Delhi                                   10 \n10 \nCSB 326 Distributed System \n3 0 2 4 \n11 \nCSB 409 Social Network Analysis \n3 0 2 4 \n12 \nCSB 421 Internet of Things \n3 0 2 4 \n13 \nCSB 406 Cloud Computing \n3 0 2 4 \n14 \nCSB 422 Big Data Analytics \n3 0 2 4 \n15 \nCSB 423 Computer Vision \n3 0 2 4 \n16 \nCSB 424 Deep Learning and Applications \n3 0 2 4 \nSet 3  \n17 \nCSB 425 \nInformation Security and Privacy 3 0 2 4 \n18 \nCSB 426 \nBusiness Intelligence and Analytics 3 0 2 4 \n19\n \nCSB 427 \nAdvanced Databases 3 0 2 4 \n20\n \nCSL 414 \nGame Theory 3 1 0 4 \n21\n CSB 409 \nSocial Network Analysis 3 0 2 4 \n22\n \nCSB 421 \nInternet of Things 3 0 2 4 \n23\n CSB 406 \nCloud Computing 3 0 2 4 \n24\n \nCSB 422 \nBig Data Analytics 3 0 2 4 \n25\n \nCSB 423 \nComputer Vision 3 0 2 4 \n26\n \nCSB 424 \nDeep Learning and Applications 3 0 2 4 \n \n \nBouquet 3 [Specialization in Information Security] \n \n \nS. No \nCourse \nCode   \nCourse Name L T P Credits \nSet 1 \n1 CSB 331 Network and Data Security 3 0 2 4 \n2 CSB 332 Mobile and Wireless Security 3 0 2 4 \n3 CSB 333 Cryptography and Computer Security 3 0 2 4 \n4 CSB 334 Threat Intelligence 3 0 2 4 \n5 CSB 335 Information Security 3 0 2 4 \n6 CSB 436 Block chain Technology 3 0 2 4 \n7 CSB 437 Cyber Physical System Security 3 0 2 4 \nSet 2 \n8 CSB 438 Security Engineering 3 0 2 4 \n9 CSB 439 \nDatabase and Online Social Media \nSecurity \n3 0 2 4 \n10 CSB 333 Cryptography and Computer Security 3 0 2 4 \n11 CSB 334 Threat Intelligence 3 0 2 4 \n12 CSB 335 Information Security 3 0 2 4 \nSet 3 \n13 CSB 436 Block chain Technology 3 0 2 4 \n14 CSB 437 Cyber Physical System Security 3 0 2 4 \n15 CSB 438 Security Engineering 3 0 2 4 \n16 CSB 439 \nDatabase and Online Social Media \nSecurity \n3 0 2 4 \n17 CSB 440 Introduction to Cyber Security 3 0 2 4 \n\n \n \n \n Course Curriculum - B.Tech (Computer Science and Engineering) NIT Delhi                                   11 \n18 CSB 441 \nMachine Learning Applications for \nCyber Security \n3 0 2 4 \n19\n CSB 442 Malware analysis and digital Forensic 3 0 2 4 \n20\n \nCSB 443 Cyber Security and Laws 3 0 2 4 \n21\n CSB 444 Software Security 3 0 2 4 \n \n \nBouquet 4 of Elective Courses [Specialization in Computer Systems]\n \n \nS. No \nCourse \nCode \nCourse Name L T P Credits \nSet 1 \n1 CSB 341 Advanced Computer Networks 3 0 2 4 \n2 CSB 342 \nProject Management for Software \nDevelopment \n3 0 2 4 \n3 CSB 343 Computer Graphics 3 0 2 4 \n4 CSB 344 Object Oriented Programming 3 0 2 4 \nSet 2 \n5 CSB 345 Distributed Systems 3 0 2 4 \n6 CSB 346 Parallel Algorithms 3 0 2 4 \n7 CSB 347 Concurrent and Parallel Programming 3 0 2 4 \n8 CSL 348 Randomized Algorithms 3 1 0 4 \n9 CSB 406 Cloud Computing 3 0 2 4 \n10 CSL 315 Optimization Techniques 3 1 0 4 \nSet 3 \n11 CSB 406 Cloud Computing 3 0 2 4 \n12 CSL 315 Optimization Techniques 3 1 0 4 \n13 CSB 451 Advanced Computer Architecture 3 0 2 4 \n14 CSB 452 Advanced Operating Systems  3 0 2 4 \n15 CSB 453 \nAdvanced Database Management \nSystems \n3 0 2 4 \n16 CSL 454 Computational Complexity 3 1 0 4 \n17 CSB 455 Simulation and Modeling 3 0 2 4 \n18 CSB 456 Real Time Systems 3 0 2 4 \n \n \nBouquet 5 of Elective Courses [Specialization in Networks and Distributed Systems]\n \n \nS. \nNo \nCourse \nCode \nCourse Name L T P Total \nSet 1 \n1 CSB 351 Wireless Sensor Networks 3 0 2 4 \n2 CSB 406 Cloud Computing 3 0 2 4 \n3 CSB 352 Optical Networks 3 0 2 4 \nSet 2 \n4 CSL 353 Queuing Theory  3 1 0 4 \n5 CSB 345 Distributed Systems 3 0 2 4 \n\n \n \n \n Course Curriculum - B.Tech (Computer Science and Engineering) NIT Delhi                                   12 \n6 CSB 354 Mobile Computing 3 0 2 4 \n7 CSB 355 Wireless Mobile Communications 3 0 2 4 \n8 CSB 356 Network and Wireless Security 3 0 2 4 \n9 CSB 357 High Performance Computing 3 0 2 4 \n10 CSB 358 Information Theory and Coding 3 0 2 4 \n11 CSL 315 Optimization Techniques 3 1 0 4 \n12 CSB 471 Network Administration  3 0 2 4 \nSet 3  \n13 CSB 471 Network Administration  3 0 2 4 \n14 CSB 341 Advanced Computer Networks 3 0 2 4 \n15 CSB 472 Next Generation Networks 3 0 2 4 \n16 CSL 414 Game Theory 3 1 0 4 \n17 CSB 473 \nWireless Sensor Networks with Internet of \nThings \n3 0 2 4 \n18 CSB 474 Quantum Computing 3 0 2 4 \n19 CSB 475 Smart Sensors and Sensor Networking 3 0 2 4 \n20 CSB 476 \nSpecial Topics in Wireless Sensor \nNetworks \n3 0 2 4 \n21 CSB 477 \nHigh Speed Network (Special Topic) (4G, \n5G, 6G) \n3 0 2 4 \n \n \nTotal Credits: 160\n \n ",
