@@ -272,16 +272,19 @@ async function loadHistory() {
             drawerList.innerHTML = '<div class="history-empty"><p>No saved syllabi yet.</p><p style="font-size:0.75rem">Parse a syllabus and click Save.</p></div>';
             return;
         }
-        drawerList.innerHTML = list.map(item => `
+        drawerList.innerHTML = list.map(item => {
+            const taskText = item.deliverableCount > 0 ? ` · ${item.deliverableCount} task(s)` : '';
+            return `
             <div class="history-item" data-id="${item.id}">
                 <div class="history-item-name">${item.name}</div>
                 <div class="history-item-meta">
-                    <span>${item.courseCount} course(s) · ${item.deliverableCount || 0} task(s)</span>
+                    <span>${item.courseCount} course(s)${taskText}</span>
                     <span>${new Date(item.savedAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}</span>
                 </div>
                 <div class="history-item-actions"><button class="history-delete" data-id="${item.id}" onclick="event.stopPropagation()">Delete</button></div>
             </div>
-        `).join('');
+            `;
+        }).join('');
         drawerList.querySelectorAll('.history-item').forEach(el => el.addEventListener('click', () => loadSaved(el.dataset.id)));
         drawerList.querySelectorAll('.history-delete').forEach(el => el.addEventListener('click', () => deleteSaved(el.dataset.id)));
     } catch { drawerList.innerHTML = '<p style="text-align:center;padding:1rem;color:var(--exam)">Failed to load.</p>'; }
