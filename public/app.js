@@ -432,7 +432,7 @@ function computeScore(c) {
 }
 
 // ─── CHARTS ──────────────────────────────────────────────────────────
-const COLORS = ['#6366F1', '#EF4444', '#8B5CF6', '#F59E0B', '#22C55E', '#EC4899', '#3B82F6', '#14B8A6'];
+const COLORS = ['#6366F1', '#EF4444', '#8B5CF6', '#F59E0B', '#22C55E', '#EC4899', '#3B82F6', '#14B8A6', '#F43F5E', '#06B6D4', '#84CC16', '#D946EF', '#EAB308', '#0EA5E9', '#10B981', '#F97316'];
 
 function renderCreditsChart(courses) {
     const ctx = $('credits-chart').getContext('2d');
@@ -486,20 +486,24 @@ function renderBusyWeeksCustom(courses, startD, midD, endD) {
     // Calculate weeks before exams
     const msWeekStart = new Date(midD);
     msWeekStart.setDate(msWeekStart.getDate() - 7);
+    const msWeekEnd = new Date(msWeekStart);
+    msWeekEnd.setDate(msWeekEnd.getDate() + 6);
 
     const endWeekStart = new Date(endD);
-    endWeekStart.setDate(endWeekStart.getDate() - 10);
+    endWeekStart.setDate(endWeekStart.getDate() - 7);
+    const endWeekEnd = new Date(endWeekStart);
+    endWeekEnd.setDate(endWeekEnd.getDate() + 6);
 
     const fmt = d => d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 
     let html = `
         <div class="busy-week-item moderate-load">
-            <div class="busy-week-header">Week of ${fmt(msWeekStart)} <span class="load-tag moderate">Moderate</span></div>
+            <div class="busy-week-header">${fmt(msWeekStart)} – ${fmt(msWeekEnd)} <span class="load-tag moderate">Moderate</span></div>
             <div class="busy-week-detail">Mid-Sem Preparation · Focus on Units 1-2</div>
             <div class="busy-week-bar"><div class="busy-week-bar-fill moderate" style="width:70%"></div></div>
         </div>
         <div class="busy-week-item high-load">
-            <div class="busy-week-header">Week of ${fmt(endWeekStart)} <span class="load-tag high">Busy</span></div>
+            <div class="busy-week-header">${fmt(endWeekStart)} – ${fmt(endWeekEnd)} <span class="load-tag high">Busy</span></div>
             <div class="busy-week-detail">Finals Preparation · Focus on Units 3-4+</div>
             <div class="busy-week-bar"><div class="busy-week-bar-fill high" style="width:95%"></div></div>
         </div>
@@ -565,7 +569,7 @@ function renderStudyPlanCustom(courses, startD, midD, endD) {
             if (chunk.length === 0) return;
             const wStart = addDays(startD, i * 7);
             const wEnd = addDays(wStart, 6);
-            html += `<div class="study-week-block"><div class="study-week-title">Week of ${fmt(wStart)} – ${fmt(wEnd)}</div><div class="study-week-items">${chunk.map(renderItem).join('')}</div></div>`;
+            html += `<div class="study-week-block"><div class="study-week-title">${fmt(wStart)} – ${fmt(wEnd)}</div><div class="study-week-items">${chunk.map(renderItem).join('')}</div></div>`;
         });
     }
 
@@ -575,7 +579,7 @@ function renderStudyPlanCustom(courses, startD, midD, endD) {
             if (chunk.length === 0) return;
             const wStart = addDays(midD, i * 7);
             const wEnd = addDays(wStart, 6);
-            html += `<div class="study-week-block"><div class="study-week-title">Week of ${fmt(wStart)} – ${fmt(wEnd)}</div><div class="study-week-items">${chunk.map(renderItem).join('')}</div></div>`;
+            html += `<div class="study-week-block"><div class="study-week-title">${fmt(wStart)} – ${fmt(wEnd)}</div><div class="study-week-items">${chunk.map(renderItem).join('')}</div></div>`;
         });
     }
 
