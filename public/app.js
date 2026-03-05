@@ -310,7 +310,10 @@ async function deleteSaved(id) {
 }
 
 // ─── Screen 2 → 3 ───────────────────────────────────────────────────
-generateTimelineBtn.addEventListener('click', () => { populateDashboard(currentResponse); switchScreen(3); });
+generateTimelineBtn.addEventListener('click', () => {
+    try { populateDashboard(currentResponse); } catch (err) { console.error('Dashboard error:', err); showToast('Dashboard had a rendering issue, some sections may be incomplete.', 'error'); }
+    switchScreen(3);
+});
 
 // ─── DASHBOARD (auto-detects mode) ──────────────────────────────────
 function populateDashboard(resp) {
@@ -331,12 +334,16 @@ function populateDashboard(resp) {
     $('stat-workload').textContent = loadRatio >= 0.5 ? '🔴 Heavy' : (loadRatio >= 0.25 ? '🟡 Moderate' : '🟢 Light');
 
     // ── Charts ──
-    if (courses.length > 0) {
-        renderCreditsChart(courses);
-        renderUnitsChart(courses);
-    } else {
-        renderWeightChart(deliverables);
-        renderCategoryChart(deliverables);
+    try {
+        if (courses.length > 0) {
+            renderCreditsChart(courses);
+            renderUnitsChart(courses);
+        } else {
+            renderWeightChart(deliverables);
+            renderCategoryChart(deliverables);
+        }
+    } catch (chartErr) {
+        console.error('Chart render error:', chartErr);
     }
 
     // ── Priority ──
@@ -378,9 +385,9 @@ function populateDashboard(resp) {
         `).join('');
     }
 
-    renderBusyWeeks(courses, deliverables, mode);
-    renderStudyPlan(courses);
-    renderInsights(courses, deliverables, mode);
+    try { renderBusyWeeks(courses, deliverables, mode); } catch (e) { console.error('BusyWeeks error:', e); }
+    try { renderStudyPlan(courses); } catch (e) { console.error('StudyPlan error:', e); }
+    try { renderInsights(courses, deliverables, mode); } catch (e) { console.error('Insights error:', e); }
 }
 
 function computeScore(c) {
