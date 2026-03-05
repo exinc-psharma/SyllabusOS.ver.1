@@ -394,11 +394,7 @@ function populateDashboard(resp) {
     // Hook up schedule generation
     const genBtn = $('generate-schedule-btn');
     if (genBtn) {
-        // Remove old listener if it exists to avoid multi-calls on re-upload
-        const newBtn = genBtn.cloneNode(true);
-        genBtn.parentNode.replaceChild(newBtn, genBtn);
-
-        newBtn.addEventListener('click', () => {
+        genBtn.onclick = () => {
             const startStr = $('date-start').value;
             const midStr = $('date-midsem').value;
             const endStr = $('date-endsem').value;
@@ -419,7 +415,7 @@ function populateDashboard(resp) {
 
             try { renderBusyWeeksCustom(courses, startD, midD, endD); } catch (e) { console.error('BusyWeeks error:', e); }
             try { renderStudyPlanCustom(courses, startD, midD, endD); } catch (e) { console.error('StudyPlan error:', e); }
-        });
+        };
     }
 
     try { renderInsights(courses, deliverables, mode); } catch (e) { console.error('Insights error:', e); }
