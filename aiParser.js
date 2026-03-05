@@ -23,7 +23,7 @@ ONLY include subjects with:
 
 Extract EXACTLY what appears in the text. Do NOT invent or hallucinate subjects.
 
-KEEP THE RESPONSE COMPACT. Max 3 topics per unit. Skip unit details for labs.
+For each course, extract ALL units (typically 4). For each unit include 2-3 key topic names from the syllabus text.
 
 Return ONLY valid JSON:
 
@@ -45,7 +45,7 @@ Return ONLY valid JSON:
       "internal_marks": "string or empty",
       "end_term_marks": "string or empty",
       "confidence": 0.0 to 1.0,
-      "units": [{"unit":"UNIT I","topics":["topic1","topic2"]}]
+      "units": [{"unit":"Unit I","topics":["Topic Name 1","Topic Name 2","Topic Name 3"]},{"unit":"Unit II","topics":[...]},{"unit":"Unit III","topics":[...]},{"unit":"Unit IV","topics":[...]}]
     }
   ],
   "deliverables": [
@@ -101,8 +101,8 @@ function repairJSON(str) {
 async function parseSyllabus(syllabusText, semester) {
   const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
-  // Cap input to save tokens on free tier
-  const maxInput = 15000;
+  // Increase limit for demo — send full text for better extraction
+  const maxInput = 50000;
   let inputText = syllabusText;
   if (inputText.length > maxInput) {
     console.log(`[AI Parser] Input too long (${inputText.length}), truncating to ${maxInput} chars`);
@@ -131,7 +131,7 @@ async function parseSyllabus(syllabusText, semester) {
           { role: 'user', content: userMsg }
         ],
         temperature: 0.1,
-        max_tokens: 3000
+        max_tokens: 6000
       });
 
       const raw = completion.choices[0].message.content.trim();

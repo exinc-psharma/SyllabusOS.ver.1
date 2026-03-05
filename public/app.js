@@ -482,25 +482,26 @@ function renderStudyPlan(courses) {
     const withUnits = courses.filter(c => c.units && c.units.length > 0);
     if (withUnits.length === 0) { el.innerHTML = '<div class="empty-state"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg><span>No unit data for study planning.</span></div>'; return; }
 
-    // Phase 1: Mid-sem prep (Units 1 & 2 of all subjects)
-    const midSem = [];
-    withUnits.forEach(c => {
-        const name = c.course_code || c.course_name.slice(0, 15);
-        const color = c.type === 'lab' ? 'var(--lab)' : 'var(--primary)';
-        c.units.forEach((u, idx) => {
-            if (idx < 2) midSem.push({ course: name, unit: u.unit, color });
+    // Build items with topic details
+    const buildItems = (unitFilter) => {
+        const items = [];
+        withUnits.forEach(c => {
+            const name = c.course_code || c.course_name.slice(0, 15);
+            const color = c.type === 'lab' ? 'var(--lab)' : 'var(--primary)';
+            c.units.forEach((u, idx) => {
+                if (unitFilter(idx)) {
+                    const topics = (u.topics && u.topics.length > 0) ? u.topics.slice(0, 3).join(', ') : '';
+                    items.push({ course: name, unit: u.unit, topics, color });
+                }
+            });
         });
-    });
+        return items;
+    };
 
-    // Phase 2: Finals prep (Units 3, 4+ of all subjects)
-    const finals = [];
-    withUnits.forEach(c => {
-        const name = c.course_code || c.course_name.slice(0, 15);
-        const color = c.type === 'lab' ? 'var(--lab)' : 'var(--primary)';
-        c.units.forEach((u, idx) => {
-            if (idx >= 2) finals.push({ course: name, unit: u.unit, color });
-        });
-    });
+    // Phase 1: Mid-sem prep (Units 1 & 2)
+    const midSem = buildItems(idx => idx < 2);
+    // Phase 2: Finals prep (Units 3, 4+)
+    const finals = buildItems(idx => idx >= 2);
 
     // Build week blocks (2 items per week)
     const buildWeeks = (items, startWeek) => {
@@ -516,21 +517,28 @@ function renderStudyPlan(courses) {
     const finalWeeks = buildWeeks(finals, midWeeks.length + 1);
     const labs = courses.filter(c => c.type === 'lab');
 
+    // Render a study item with optional topic details
+    const renderItem = b => {
+        let label = `${b.course} — ${b.unit}`;
+        const topicHint = b.topics ? `<div class="study-item" style="color:var(--text-muted);font-size:0.5625rem;padding-left:0.875rem;opacity:0.8">↳ ${b.topics}</div>` : '';
+        return `<div class="study-item"><span class="study-dot" style="background:${b.color}"></span>${label}</div>${topicHint}`;
+    };
+
     let html = '';
 
-    // Mid-sem phase header
+    // Mid-sem phase
     if (midSem.length > 0) {
         html += '<div class="study-week-block" style="border-left-color:var(--confidence-mid)"><div class="study-week-title" style="color:var(--confidence-mid)">📝 Mid-Sem Preparation</div><div class="study-week-items"><div class="study-item" style="color:var(--text-muted);font-size:0.625rem">Focus on Units 1 & 2 of each subject</div></div></div>';
         html += midWeeks.map(w => `
-            <div class="study-week-block"><div class="study-week-title">Week ${w.week}–${w.week + 1}</div><div class="study-week-items">${w.items.map(b => `<div class="study-item"><span class="study-dot" style="background:${b.color}"></span>${b.course} — ${b.unit}</div>`).join('')}</div></div>
+            <div class="study-week-block"><div class="study-week-title">Week ${w.week}–${w.week + 1}</div><div class="study-week-items">${w.items.map(renderItem).join('')}</div></div>
         `).join('');
     }
 
-    // Finals phase header
+    // Finals phase
     if (finals.length > 0) {
         html += '<div class="study-week-block" style="border-left-color:var(--exam)"><div class="study-week-title" style="color:var(--exam)">🎯 Finals Preparation</div><div class="study-week-items"><div class="study-item" style="color:var(--text-muted);font-size:0.625rem">Units 3, 4+ — complete remaining syllabus</div></div></div>';
         html += finalWeeks.map(w => `
-            <div class="study-week-block"><div class="study-week-title">Week ${w.week}–${w.week + 1}</div><div class="study-week-items">${w.items.map(b => `<div class="study-item"><span class="study-dot" style="background:${b.color}"></span>${b.course} — ${b.unit}</div>`).join('')}</div></div>
+            <div class="study-week-block"><div class="study-week-title">Week ${w.week}–${w.week + 1}</div><div class="study-week-items">${w.items.map(renderItem).join('')}</div></div>
         `).join('');
     }
 
