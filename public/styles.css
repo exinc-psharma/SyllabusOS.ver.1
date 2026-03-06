@@ -1235,7 +1235,8 @@ textarea::placeholder {
     content: '';
     position: absolute;
     left: calc(-1.75rem + 5px);
-    top: 16px;
+    top: 24px;
+    /* Move line start down to match new dot position */
     bottom: -16px;
     width: 2px;
     background: var(--border);
@@ -1263,7 +1264,8 @@ textarea::placeholder {
 .event-dot {
     position: absolute;
     left: -1.75rem;
-    top: 0.25rem;
+    top: 0.85rem;
+    /* Drop dot down to align with middle of content */
     width: 12px;
     height: 12px;
     border-radius: 50%;
