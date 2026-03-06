@@ -142,13 +142,42 @@ app.get('/api/syllabi/:id', (req, res) => {
 });
 
 app.post('/api/syllabi', (req, res) => {
-    const { name, rawText, result } = req.body;
+    const { name, rawText, result, tempId } = req.body;
     if (!result) return res.status(400).json({ error: 'result required' });
+
     const data = readStorage();
-    const entry = { id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6), name: name || 'Untitled', rawText: rawText || '', result, savedAt: new Date().toISOString() };
+    const newId = Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+    const entry = { id: newId, name: name || 'Untitled', rawText: rawText || '', result, savedAt: new Date().toISOString() };
     data.unshift(entry);
     writeStorage(data);
-    res.json({ success: true, id: entry.id });
+
+    // Migration logic for detailed storage and progress
+    if (tempId && tempId !== newId) {
+        // Migrate detailed syllabus state
+        const sDb = readJsonFile(SYLLABUS_DATA_FILE);
+        if (sDb[tempId]) {
+            sDb[newId] = { ...sDb[tempId], syllabusId: newId, updatedAt: new Date().toISOString() };
+            writeJsonFile(SYLLABUS_DATA_FILE, sDb);
+            console.log(`[Server] Migrated syllabus state from ${tempId} to ${newId}`);
+        }
+
+        // Migrate progress data
+        const pDb = readJsonFile(PROGRESS_DATA_FILE);
+        if (pDb[tempId]) {
+            pDb[newId] = { ...pDb[tempId] };
+            // Update topic keys if they contain the ID
+            const newProgress = {};
+            Object.keys(pDb[newId]).forEach(oldTopicKey => {
+                const newTopicKey = oldTopicKey.replace(tempId, newId);
+                newProgress[newTopicKey] = pDb[newId][oldTopicKey];
+            });
+            pDb[newId] = newProgress;
+            writeJsonFile(PROGRESS_DATA_FILE, pDb);
+            console.log(`[Server] Migrated progress data from ${tempId} to ${newId}`);
+        }
+    }
+
+    res.json({ success: true, id: newId });
 });
 
 app.delete('/api/syllabi/:id', (req, res) => {

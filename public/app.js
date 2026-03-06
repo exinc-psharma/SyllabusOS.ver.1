@@ -4,6 +4,7 @@ let currentRawText = '';
 let uploadedPdfFile = null;
 let creditsChart = null;
 let unitsChart = null;
+let currentStudyPlanData = null;
 
 const $ = id => document.getElementById(id);
 const syllabusInput = $('syllabus-input');
@@ -88,6 +89,10 @@ function goHome() {
         pdfInput.value = '';
         currentResponse = null;
         currentRawText = '';
+        currentStudyPlanData = null;
+        $('date-start').value = '';
+        $('date-midsem').value = '';
+        $('date-endsem').value = '';
     }, 400);
 }
 logoHome.addEventListener('click', goHome);
@@ -257,20 +262,30 @@ saveModal.addEventListener('click', e => { if (e.target === saveModal) saveModal
 
 saveConfirm.addEventListener('click', async () => {
     const name = saveNameInput.value.trim() || 'Untitled Syllabus';
+    const tempId = (currentResponse && currentResponse.id) ? currentResponse.id : null;
     try {
         const res = await fetch('/api/syllabi', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ name, rawText: currentRawText, result: currentResponse })
+            body: JSON.stringify({ name, rawText: currentRawText, result: currentResponse, tempId })
         });
         const data = await res.json();
         if (data.success && data.id) {
             currentResponse.id = data.id;
             currentResponse.name = name;
+            // Sync the frozen detailed state to the new ID
+            if (currentStudyPlanData) {
+                await saveFrozenSyllabus(currentStudyPlanData);
+            }
+            // Re-render tracker to update listeners with new ID
+            await renderProgressTracker(currentResponse.courses);
         }
         showToast(data.success ? `"${name}" saved!` : 'Save failed.', data.success ? 'success' : 'error');
         if (data.success) loadHistory();
-    } catch { showToast('Save failed.', 'error'); }
+    } catch (err) {
+        console.error('[App] Save error:', err);
+        showToast('Save failed.', 'error');
+    }
     saveModal.classList.add('hidden');
 });
 
@@ -311,6 +326,12 @@ async function loadHistory() {
 async function loadSaved(id) {
     try {
         console.log(`[App] loadSaved start for id: ${id}`);
+        // Clear previous dates before loading new ones
+        $('date-start').value = '';
+        $('date-midsem').value = '';
+        $('date-endsem').value = '';
+        currentStudyPlanData = null;
+
         // Try new storage format first
         const resSyllabus = await fetch(`/api/syllabus/${id}`);
         if (resSyllabus.ok) {
@@ -338,6 +359,7 @@ async function loadSaved(id) {
                 }
                 if (syllabusData.busyWeeksHtml) $('busy-weeks-list').innerHTML = syllabusData.busyWeeksHtml;
                 if (syllabusData.studyPlanHtml) $('study-plan-list').innerHTML = syllabusData.studyPlanHtml;
+                currentStudyPlanData = syllabusData.studyPlan;
 
                 closeDrawer();
                 switchScreen(3);
@@ -498,9 +520,9 @@ function populateDashboard(resp) {
 
             try { renderBusyWeeksCustom(courses, startD, midD, endD); } catch (e) { console.error('BusyWeeks error:', e); }
             try {
-                const planData = renderStudyPlanCustom(courses, startD, midD, endD);
+                currentStudyPlanData = renderStudyPlanCustom(courses, startD, midD, endD);
                 // Freeze the current state
-                await saveFrozenSyllabus(planData);
+                await saveFrozenSyllabus(currentStudyPlanData);
 
                 const syllabusId = (currentResponse && currentResponse.id) ? currentResponse.id : 'temp';
 
