@@ -21,9 +21,11 @@ ONLY include subjects with:
 - Allocated credits (1 or more)
 - Clear theory, lab, or project classification
 
+CRITICAL INSTRUCTION: You must extract EVERY SINGLE theory subject AND EVERY SINGLE lab/practical subject listed for that semester. DO NOT SKIP ANY LABS. Labs are often 1 credit, they are just as important as theory subjects. Count them carefully to ensure no lab is missed.
+
 Extract EXACTLY what appears in the text. Do NOT invent or hallucinate subjects.
 
-For each course, extract ALL units (typically 4). For each unit include 2-3 key topic names from the syllabus text.
+For each course, extract ALL units (typically 4). For each unit include 2-3 key topic names from the syllabus text. For labs, you can list the experiments as topics under a single "Lab Experiments" unit.
 
 Return ONLY valid JSON. Do not include any conversational text, markdown formatting, or preamble like "Here is the JSON". Start directly with '{' and end with '}':
 
