@@ -229,4 +229,7 @@ app.get('/api/progress/:id', (req, res) => {
     res.json(progress);
 });
 
-app.listen(PORT, () => console.log(`✓ SyllabusOS running on http://localhost:${PORT}`));
+if (require.main === module) {
+    app.listen(PORT, () => console.log(`✓ SyllabusOS running on http://localhost:${PORT}`));
+}
+module.exports = app;
