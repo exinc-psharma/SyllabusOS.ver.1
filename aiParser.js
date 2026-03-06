@@ -25,7 +25,7 @@ Extract EXACTLY what appears in the text. Do NOT invent or hallucinate subjects.
 
 For each course, extract ALL units (typically 4). For each unit include 2-3 key topic names from the syllabus text.
 
-Return ONLY valid JSON:
+Return ONLY valid JSON. Do not include any conversational text, markdown formatting, or preamble like "Here is the JSON". Start directly with '{' and end with '}':
 
 {
   "summary": {
@@ -141,6 +141,13 @@ async function parseSyllabus(syllabusText, semester) {
       let jsonStr = raw;
       if (jsonStr.startsWith('```')) {
         jsonStr = jsonStr.replace(/^```(?:json)?\n?/, '').replace(/\n?```$/, '');
+      }
+
+      // Extract only the JSON part (ignore conversational filler like "Here is the resulting JSON:")
+      const firstBrace = jsonStr.indexOf('{');
+      const lastBrace = jsonStr.lastIndexOf('}');
+      if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
+        jsonStr = jsonStr.substring(firstBrace, lastBrace + 1);
       }
 
       // Try normal parse, then repair
