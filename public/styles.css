@@ -1228,15 +1228,22 @@ textarea::placeholder {
 }
 
 .timeline::before {
+    display: none;
+}
+
+.timeline-event::before {
     content: '';
     position: absolute;
-    left: 5px;
-    top: 8px;
-    height: calc(100% - 24px);
-    /* Scales with full scroll height now */
+    left: calc(-1.75rem + 5px);
+    top: 16px;
+    bottom: -16px;
     width: 2px;
     background: var(--border);
     z-index: 0;
+}
+
+.timeline-event:last-child::before {
+    display: none;
 }
 
 .timeline-event {
