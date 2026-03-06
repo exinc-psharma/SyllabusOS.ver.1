@@ -1214,6 +1214,7 @@ textarea::placeholder {
     padding-left: 1.75rem;
     flex: 1;
     overflow-y: auto;
+    overflow-x: hidden;
     max-height: 280px;
     padding-top: 0.25rem;
 }
