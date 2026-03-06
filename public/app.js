@@ -55,6 +55,7 @@ function switchScreen(n) {
             $('tab-dashboard').classList.add('active');
             $('tab-tracker').classList.remove('active');
         }
+        window.scrollTo(0, 0);
     }, 400);
 }
 
@@ -850,9 +851,9 @@ async function renderProgressTracker(courses) {
         html += `<div class="course-accordion">
             <div class="course-header" onclick="this.nextElementSibling.classList.toggle('open'); this.querySelector('.chevron').classList.toggle('open')">
                 <span style="font-weight:600">${courseDisplayName}</span>
-                <svg class="chevron open" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                <svg class="chevron" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
             </div>
-            <div class="course-body open">`;
+            <div class="course-body">`;
 
         units.forEach((u, uIdx) => {
             const unitName = u.unit || `Unit ${uIdx + 1}`;
