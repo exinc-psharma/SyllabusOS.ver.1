@@ -115,7 +115,16 @@ app.post('/api/parse-syllabus-pdf', upload.single('pdf'), async (req, res) => {
     }
 });
 
-// ─── Storage APIs ────────────────────────────────────────────────────
+const SYLLABUS_DATA_FILE = path.join(DATA_DIR, 'syllabus_data.json');
+const PROGRESS_DATA_FILE = path.join(DATA_DIR, 'progress_data.json');
+
+if (!fs.existsSync(SYLLABUS_DATA_FILE)) fs.writeFileSync(SYLLABUS_DATA_FILE, '{}', 'utf8');
+if (!fs.existsSync(PROGRESS_DATA_FILE)) fs.writeFileSync(PROGRESS_DATA_FILE, '{}', 'utf8');
+
+function readJsonFile(file) { try { return JSON.parse(fs.readFileSync(file, 'utf8')); } catch { return {}; } }
+function writeJsonFile(file, data) { fs.writeFileSync(file, JSON.stringify(data, null, 2), 'utf8'); }
+
+// ─── Storage APIs (Legacy/History) ───────────────────────────────────
 app.get('/api/syllabi', (req, res) => {
     const data = readStorage();
     res.json(data.map(s => ({
@@ -149,6 +158,46 @@ app.delete('/api/syllabi/:id', (req, res) => {
     if (data.length === before) return res.status(404).json({ error: 'Not found' });
     writeStorage(data);
     res.json({ success: true });
+});
+
+// ─── NEW: Per-Syllabus Persistence APIs ──────────────────────────────
+app.post('/api/syllabus', (req, res) => {
+    const { syllabusId } = req.body;
+    if (!syllabusId) return res.status(400).json({ error: 'syllabusId required' });
+
+    const db = readJsonFile(SYLLABUS_DATA_FILE);
+    // Save entire payload to preserve HTML sections and frozen data
+    db[syllabusId] = {
+        ...req.body,
+        updatedAt: new Date().toISOString()
+    };
+    writeJsonFile(SYLLABUS_DATA_FILE, db);
+    res.json({ success: true });
+});
+
+app.get('/api/syllabus/:id', (req, res) => {
+    const db = readJsonFile(SYLLABUS_DATA_FILE);
+    const item = db[req.params.id];
+    if (!item) return res.json(null);
+    res.json(item);
+});
+
+app.post('/api/progress', (req, res) => {
+    const { syllabusId, topicId, completed, notes, revision } = req.body;
+    if (!syllabusId || !topicId) return res.status(400).json({ error: 'syllabusId and topicId required' });
+
+    const db = readJsonFile(PROGRESS_DATA_FILE);
+    if (!db[syllabusId]) db[syllabusId] = {};
+    db[syllabusId][topicId] = { completed, notes, revision, updatedAt: new Date().toISOString() };
+
+    writeJsonFile(PROGRESS_DATA_FILE, db);
+    res.json({ success: true });
+});
+
+app.get('/api/progress/:id', (req, res) => {
+    const db = readJsonFile(PROGRESS_DATA_FILE);
+    const progress = db[req.params.id] || {};
+    res.json(progress);
 });
 
 app.listen(PORT, () => console.log(`✓ SyllabusOS running on http://localhost:${PORT}`));

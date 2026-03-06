@@ -47,6 +47,14 @@ function switchScreen(n) {
         screens[n].style.display = '';
         requestAnimationFrame(() => screens[n].classList.add('active'));
         topNavBtn.classList.toggle('hidden', n === 1);
+
+        // Reset view to dashboard when going to screen 3
+        if (n === 3) {
+            $('dashboard-wrapper').classList.remove('hidden');
+            $('progress-wrapper').classList.add('hidden');
+            $('tab-dashboard').classList.add('active');
+            $('tab-tracker').classList.remove('active');
+        }
     }, 400);
 }
 
@@ -249,9 +257,18 @@ saveModal.addEventListener('click', e => { if (e.target === saveModal) saveModal
 saveConfirm.addEventListener('click', async () => {
     const name = saveNameInput.value.trim() || 'Untitled Syllabus';
     try {
-        const res = await fetch('/api/syllabi', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name, rawText: currentRawText, result: currentResponse }) });
+        const res = await fetch('/api/syllabi', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name, rawText: currentRawText, result: currentResponse })
+        });
         const data = await res.json();
+        if (data.success && data.id) {
+            currentResponse.id = data.id;
+            currentResponse.name = name;
+        }
         showToast(data.success ? `"${name}" saved!` : 'Save failed.', data.success ? 'success' : 'error');
+        if (data.success) loadHistory();
     } catch { showToast('Save failed.', 'error'); }
     saveModal.classList.add('hidden');
 });
@@ -292,19 +309,73 @@ async function loadHistory() {
 
 async function loadSaved(id) {
     try {
+        console.log(`[App] loadSaved start for id: ${id}`);
+        // Try new storage format first
+        const resSyllabus = await fetch(`/api/syllabus/${id}`);
+        if (resSyllabus.ok) {
+            const syllabusData = await resSyllabus.json();
+            if (syllabusData && syllabusData.parsedResponse) {
+                console.log(`[App] Found modern syllabus record.`);
+                currentResponse = syllabusData.parsedResponse;
+                currentResponse.id = syllabusData.syllabusId;
+                currentResponse.name = syllabusData.name || 'Untitled';
+
+                currentRawText = syllabusData.rawText || '';
+                rawTextDisplay.textContent = currentRawText;
+                populateCards(currentResponse);
+                rawJsonDisplay.textContent = JSON.stringify(currentResponse, null, 2);
+                parseBadge.classList.remove('fallback');
+                badgeText.textContent = 'Loaded from Storage';
+
+                populateDashboard(currentResponse);
+
+                // Restore frozen dates and schedule
+                if (syllabusData.semesterDates) {
+                    $('date-start').value = syllabusData.semesterDates.start || '';
+                    $('date-midsem').value = syllabusData.semesterDates.mid || '';
+                    $('date-endsem').value = syllabusData.semesterDates.end || '';
+                }
+                if (syllabusData.busyWeeksHtml) $('busy-weeks-list').innerHTML = syllabusData.busyWeeksHtml;
+                if (syllabusData.studyPlanHtml) $('study-plan-list').innerHTML = syllabusData.studyPlanHtml;
+
+                closeDrawer();
+                switchScreen(3);
+                showToast(`Loaded \"${syllabusData.name || 'Untitled'}\"`, 'success');
+                return;
+            }
+        }
+
+        console.log(`[App] Modern record not found or invalid, falling back to legacy history.`);
         const res = await fetch(`/api/syllabi/${id}`);
+        if (!res.ok) {
+            throw new Error(`Server returned ${res.status} ${res.statusText}`);
+        }
+
         const saved = await res.json();
+        if (!saved || !saved.result) {
+            console.error('[App] Invalid legacy data structure:', saved);
+            throw new Error('Invalid legacy data structure');
+        }
+
         currentResponse = saved.result;
+        currentResponse.id = saved.id || id;
+        currentResponse.name = saved.name || 'Untitled';
+
         currentRawText = saved.rawText || '';
         rawTextDisplay.textContent = currentRawText;
         populateCards(currentResponse);
         rawJsonDisplay.textContent = JSON.stringify(currentResponse, null, 2);
-        parseBadge.classList.remove('fallback'); badgeText.textContent = 'Loaded from History';
+        parseBadge.classList.remove('fallback');
+        badgeText.textContent = 'Loaded from History';
+
         populateDashboard(currentResponse);
         closeDrawer();
         switchScreen(3);
-        showToast(`Loaded "${saved.name}"`, 'success');
-    } catch { showToast('Failed to load.', 'error'); }
+        showToast(`Loaded \"${currentResponse.name}\"`, 'success');
+    } catch (e) {
+        console.error('[App] Load error:', e);
+        showToast(`Failed to load: ${e.message}`, 'error');
+    }
 }
 
 async function deleteSaved(id) {
@@ -314,7 +385,18 @@ async function deleteSaved(id) {
 
 // ─── Screen 2 → 3 ───────────────────────────────────────────────────
 generateTimelineBtn.addEventListener('click', () => {
-    try { populateDashboard(currentResponse); } catch (err) { console.error('Dashboard error:', err); showToast('Dashboard had a rendering issue, some sections may be incomplete.', 'error'); }
+    try {
+        populateDashboard(currentResponse);
+        // Force refresh from storage if exists
+        if (currentResponse.id) {
+            fetch(`/api/syllabus/${currentResponse.id}`)
+                .then(r => r.json())
+                .then(d => { if (d) populateDashboard(currentResponse); });
+        }
+    } catch (err) {
+        console.error('Dashboard error:', err);
+        showToast('Dashboard issue detected.', 'error');
+    }
     switchScreen(3);
 });
 
@@ -394,7 +476,7 @@ function populateDashboard(resp) {
     // Hook up schedule generation
     const genBtn = $('generate-schedule-btn');
     if (genBtn) {
-        genBtn.onclick = () => {
+        genBtn.onclick = async () => {
             const startStr = $('date-start').value;
             const midStr = $('date-midsem').value;
             const endStr = $('date-endsem').value;
@@ -414,11 +496,66 @@ function populateDashboard(resp) {
             }
 
             try { renderBusyWeeksCustom(courses, startD, midD, endD); } catch (e) { console.error('BusyWeeks error:', e); }
-            try { renderStudyPlanCustom(courses, startD, midD, endD); } catch (e) { console.error('StudyPlan error:', e); }
+            try {
+                const planData = renderStudyPlanCustom(courses, startD, midD, endD);
+                // Freeze the current state
+                await saveFrozenSyllabus(planData);
+
+                const syllabusId = (currentResponse && currentResponse.id) ? currentResponse.id : 'temp';
+
+                // Refresh tracker UI immediately
+                await renderProgressTracker(courses);
+            } catch (e) { console.error('StudyPlan error:', e); }
         };
     }
 
+    // Attempt to load frozen state if available
+    if (resp.id) {
+        fetch(`/api/syllabus/${resp.id}`)
+            .then(res => res.json())
+            .then(sData => {
+                if (sData) {
+                    if (sData.semesterDates) {
+                        $('date-start').value = sData.semesterDates.start || '';
+                        $('date-midsem').value = sData.semesterDates.mid || '';
+                        $('date-endsem').value = sData.semesterDates.end || '';
+                    }
+                    if (sData.busyWeeksHtml) $('busy-weeks-list').innerHTML = sData.busyWeeksHtml;
+                    if (sData.studyPlanHtml) $('study-plan-list').innerHTML = sData.studyPlanHtml;
+                }
+            });
+    }
+
     try { renderInsights(courses, deliverables, mode); } catch (e) { console.error('Insights error:', e); }
+    try { renderProgressTracker(courses); } catch (e) { console.error('Progress Tracker error:', e); }
+}
+
+async function saveFrozenSyllabus(planData) {
+    if (!currentResponse || !currentResponse.id) {
+        currentResponse.id = 'temp_' + Math.random().toString(36).substr(2, 9);
+    }
+    const id = currentResponse.id;
+    const data = {
+        syllabusId: id,
+        parsedCourses: currentResponse.courses,
+        parsedResponse: currentResponse,
+        rawText: currentRawText,
+        semesterDates: {
+            start: $('date-start').value,
+            mid: $('date-midsem').value,
+            end: $('date-endsem').value
+        },
+        studyPlanHtml: $('study-plan-list').innerHTML,
+        busyWeeksHtml: $('busy-weeks-list').innerHTML,
+        studyPlan: planData, // Freezing the sequence
+        savedAt: new Date().toISOString()
+    };
+
+    await fetch('/api/syllabus', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+    });
 }
 
 function computeScore(c) {
@@ -588,6 +725,9 @@ function renderStudyPlanCustom(courses, startD, midD, endD) {
     }
 
     el.innerHTML = html;
+
+    // Return the stable sequence for freezing
+    return { midSem, finals, labs };
 }
 
 
@@ -630,3 +770,226 @@ function renderInsights(courses, deliverables, mode) {
 
     el.innerHTML = insights.map(i => `<div class="insight-card ${i.cls}"><div class="insight-icon">${i.icon}</div><div class="insight-title">${i.title}</div><div class="insight-value">${i.value}</div><div class="insight-desc">${i.desc}</div></div>`).join('');
 }
+
+// ─── PROGRESS TRACKER LOGIC ──────────────────────────────────────────
+
+// View Toggle
+$('tab-dashboard').addEventListener('click', () => {
+    $('tab-dashboard').classList.add('active');
+    $('tab-tracker').classList.remove('active');
+    $('dashboard-wrapper').classList.remove('hidden');
+    $('progress-wrapper').classList.add('hidden');
+});
+
+$('tab-tracker').addEventListener('click', async () => {
+    $('tab-tracker').classList.add('active');
+    $('tab-dashboard').classList.remove('active');
+    $('progress-wrapper').classList.remove('hidden');
+    $('dashboard-wrapper').classList.add('hidden');
+
+    if (currentResponse) {
+        renderProgressTracker(currentResponse.courses);
+    }
+});
+
+// Tracker Render
+async function renderProgressTracker(courses) {
+    const container = $('tracker-courses-container');
+    if (!container) return;
+
+    container.innerHTML = ""; // Clear for stability
+
+    const syllabusId = (currentResponse && currentResponse.id) ? currentResponse.id : 'temp';
+
+    // Check for dates to determine locked state
+    const hasDates = $('date-start').value && $('date-midsem').value && $('date-endsem').value;
+
+    // 1. Fetch Plan & Progress first (Load Order Optimization)
+    let studyPlan = null;
+    let trackerState = {};
+
+    try {
+        const resSyllabus = await fetch(`/api/syllabus/${syllabusId}`);
+        if (resSyllabus.ok) {
+            const sData = await resSyllabus.json();
+            studyPlan = sData ? sData.studyPlan : null;
+        }
+
+        const resProgress = await fetch(`/api/progress/${syllabusId}`);
+        if (resProgress.ok) trackerState = await resProgress.json();
+    } catch (e) {
+        console.warn('[App] Could not fetch state:', e);
+    }
+
+    if (!courses || !Array.isArray(courses) || courses.length === 0) {
+        container.innerHTML = '<div style="color:var(--text-muted);text-align:center;padding:2rem;">No courses available to track.</div>';
+        updateOverallProgress(0, 0);
+        return;
+    }
+
+    let bannerHtml = '';
+    let lockedClass = '';
+    if (!hasDates) {
+        bannerHtml = `<div class="locked-banner">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+            Enter semester dates on Dashboard and click Generate Schedule to activate the Progress Tracker.
+        </div>`;
+        lockedClass = 'tracker-locked';
+    }
+
+    let html = bannerHtml + `<div class="${lockedClass}">`;
+    let totalTopicsCount = 0;
+
+    courses.forEach((c, cIdx) => {
+        const units = c.units || [];
+        if (units.length === 0) return;
+
+        const courseId = c.course_code || c.course_name.slice(0, 15);
+        const courseDisplayName = c.course_name || courseId;
+
+        html += `<div class="course-accordion">
+            <div class="course-header" onclick="this.nextElementSibling.classList.toggle('open'); this.querySelector('.chevron').classList.toggle('open')">
+                <span style="font-weight:600">${courseDisplayName}</span>
+                <svg class="chevron open" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            </div>
+            <div class="course-body open">`;
+
+        units.forEach((u, uIdx) => {
+            const unitName = u.unit || `Unit ${uIdx + 1}`;
+            const topics = u.topics || [];
+
+            html += `<div class="unit-accordion">
+                <div class="unit-header" onclick="this.nextElementSibling.classList.toggle('open'); this.classList.toggle('open')">
+                    ${unitName}
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                </div>
+                <div class="unit-body">`;
+
+            topics.forEach((topic, tIdx) => {
+                totalTopicsCount++;
+                // Standardized progress key format: syllabusId*courseId*unitId*topicIndex
+                const topicKey = `${syllabusId}*${courseId}*${unitName}*${tIdx}`;
+                const state = trackerState[topicKey] || { completed: false, notes: '', revision: false };
+
+                const compClass = state.completed ? 'completed' : '';
+                const chk = state.completed ? 'checked' : '';
+                const starActive = state.revision ? 'active' : '';
+
+                html += `<div class="topic-item ${compClass}" data-key="${topicKey}">
+                    <input type="checkbox" class="topic-checkbox" ${chk}>
+                    <div class="topic-details">
+                        <span class="topic-name">${topic}</span>
+                        <textarea class="topic-notes" placeholder="Add study notes...">${state.notes || ''}</textarea>
+                    </div>
+                    <div class="topic-star ${starActive}" title="Mark for revision">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+                    </div>
+                </div>`;
+            });
+
+            html += `</div></div>`;
+        });
+
+        html += `</div></div>`;
+    });
+
+    html += `</div>`; // Close locked wrapper
+
+    if (totalTopicsCount === 0) {
+        container.innerHTML = '<div style="color:var(--text-muted);text-align:center;padding:2rem;">Courses found, but no units/topics were extracted.</div>';
+    } else {
+        container.innerHTML = html;
+        attachTrackerListeners(container, totalTopicsCount, courses, syllabusId);
+    }
+
+    // Initial Progress Update (Calculation using loaded state)
+    let completedCount = 0;
+    Object.values(trackerState).forEach(s => { if (s.completed) completedCount++; });
+    updateOverallProgress(completedCount, totalTopicsCount);
+
+    // FIX 2: Simplified Goal Banner Logic
+    const goalEl = $('current-goal-text');
+    const goalHeader = document.querySelector('.goal-header');
+
+    // Check if plan exists in a robust way
+    const hasPlan = studyPlan && (
+        (studyPlan.midSem && studyPlan.midSem.length > 0) ||
+        (studyPlan.finals && studyPlan.finals.length > 0)
+    );
+
+    if (goalEl) {
+        if (!hasPlan) {
+            if (goalHeader) goalHeader.textContent = '🔥 Current Week Goal';
+            goalEl.innerHTML = `<span style="color:var(--text-muted); font-size: 0.8125rem;">Generate a schedule on the Dashboard to start your study plan.</span>`;
+        } else {
+            if (goalHeader) goalHeader.textContent = '📅 Study Guidance';
+            goalEl.innerHTML = `<span style="color:var(--text-main); font-size: 0.8125rem; font-weight:500;">Track your weekly progress below. Complete tasks to stay on schedule.</span>`;
+        }
+    }
+}
+
+function attachTrackerListeners(container, totalTopicsCount, courses, syllabusId) {
+    async function saveProgress(topicItem) {
+        const key = topicItem.dataset.key;
+        const body = {
+            syllabusId,
+            topicId: key,
+            completed: topicItem.querySelector('.topic-checkbox').checked,
+            notes: topicItem.querySelector('.topic-notes').value,
+            revision: topicItem.querySelector('.topic-star').classList.contains('active')
+        };
+        await fetch('/api/progress', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body)
+        });
+
+        const allItems = container.querySelectorAll('.topic-item');
+        const newState = {};
+        allItems.forEach(it => {
+            newState[it.dataset.key] = { completed: it.querySelector('.topic-checkbox').checked };
+        });
+
+        let completedCount = 0;
+        Object.values(newState).forEach(s => { if (s.completed) completedCount++; });
+        updateOverallProgress(completedCount, totalTopicsCount);
+    }
+
+    container.querySelectorAll('.topic-checkbox').forEach(cb => {
+        cb.onchange = (e) => {
+            const item = e.target.closest('.topic-item');
+            item.classList.toggle('completed', e.target.checked);
+            saveProgress(item);
+        };
+    });
+
+    container.querySelectorAll('.topic-notes').forEach(tn => {
+        tn.onblur = (e) => saveProgress(e.target.closest('.topic-item'));
+    });
+
+    container.querySelectorAll('.topic-star').forEach(ts => {
+        ts.onclick = (e) => {
+            const item = e.target.closest('.topic-item');
+            const star = item.querySelector('.topic-star');
+            star.classList.toggle('active');
+            saveProgress(item);
+        };
+    });
+}
+
+function updateOverallProgress(completed, total) {
+    // FIX 9: Percent calculation check
+    const pct = total === 0 ? 0 : Math.round((completed / total) * 100);
+    // FIX Progress Text Display: "X / Y tasks"
+    const fractionText = `${completed} / ${total} tasks`;
+
+    $('overall-progress-text').innerHTML = `<span style="font-size:1.5rem">${pct}%</span> <span style="font-size:0.6rem;font-weight:600">Progress</span>`;
+    $('overall-progress-fraction').textContent = fractionText;
+
+    const circle = $('overall-progress-circle');
+    const circ = 251.2;
+    // Standard circle math: offset = circ - (pct/100)*circ
+    const offset = circ - (pct / 100) * circ;
+    circle.style.strokeDashoffset = offset;
+}
+
