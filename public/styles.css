@@ -1218,14 +1218,25 @@ textarea::placeholder {
     padding-top: 0.25rem;
 }
 
+.timeline::-webkit-scrollbar {
+    width: 6px;
+}
+
+.timeline::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+}
+
 .timeline::before {
     content: '';
     position: absolute;
     left: 5px;
     top: 8px;
-    bottom: 16px;
+    height: calc(100% - 24px);
+    /* Scales with full scroll height now */
     width: 2px;
     background: var(--border);
+    z-index: 0;
 }
 
 .timeline-event {
