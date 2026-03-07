@@ -1,3 +1,38 @@
+// ─── AUTHENTICATION WRAPPER ──────────────────────────────────────────
+(function() {
+    let token = localStorage.getItem('syllabusos_token');
+    if (!token) {
+        token = 'sess_' + Math.random().toString(36).substr(2, 9) + Date.now().toString(36);
+        localStorage.setItem('syllabusos_token', token);
+    }
+    const originalFetch = window.fetch;
+    window.fetch = async function() {
+        let [resource, config] = arguments;
+        if (typeof resource === 'string' && resource.startsWith('/api/')) {
+            config = config || {};
+            config.headers = config.headers || {};
+            if (config.headers instanceof Headers) {
+                config.headers.append('Authorization', 'Bearer ' + token);
+            } else {
+                config.headers['Authorization'] = 'Bearer ' + token;
+            }
+        }
+        return originalFetch(resource, config);
+    };
+})();
+
+// ─── DOM SECURITY (XSS PREVENTION) ───────────────────────────────────
+const sanitizeObjClient = (obj) => {
+    if (typeof obj === 'string') return obj.replace(/[&<>'"]/g, tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag]));
+    if (Array.isArray(obj)) return obj.map(sanitizeObjClient);
+    if (obj !== null && typeof obj === 'object') {
+        const sanitized = {};
+        for (const [key, val] of Object.entries(obj)) sanitized[key] = sanitizeObjClient(val);
+        return sanitized;
+    }
+    return obj;
+};
+
 // ─── STATE ───────────────────────────────────────────────────────────
 let currentResponse = null;
 let currentRawText = '';
@@ -164,7 +199,7 @@ generatePlanBtn.addEventListener('click', async () => {
             });
             result = await res.json();
         }
-        currentResponse = result;
+        currentResponse = sanitizeObjClient(result);
     } catch (err) {
         console.warn('API failed:', err);
         currentResponse = { source: 'fallback', summary: { total_courses: 0, total_credits: 0 }, courses: [], deliverables: [] };
@@ -307,14 +342,15 @@ async function loadHistory() {
         }
         drawerList.innerHTML = list.map(item => {
             const taskText = item.deliverableCount > 0 ? ` · ${item.deliverableCount} task(s)` : '';
+            const safeItem = sanitizeObjClient(item); // Fix DOM XSS here
             return `
-            <div class="history-item" data-id="${item.id}">
-                <div class="history-item-name">${item.name}</div>
+            <div class="history-item" data-id="${safeItem.id}">
+                <div class="history-item-name">${safeItem.name}</div>
                 <div class="history-item-meta">
-                    <span>${item.courseCount} course(s)${taskText}</span>
-                    <span>${new Date(item.savedAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}</span>
+                    <span>${safeItem.courseCount} course(s)${taskText}</span>
+                    <span>${new Date(safeItem.savedAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}</span>
                 </div>
-                <div class="history-item-actions"><button class="history-delete" data-id="${item.id}" onclick="event.stopPropagation()">Delete</button></div>
+                <div class="history-item-actions"><button class="history-delete" data-id="${safeItem.id}" onclick="event.stopPropagation()">Delete</button></div>
             </div>
             `;
         }).join('');
@@ -338,7 +374,7 @@ async function loadSaved(id) {
             const syllabusData = await resSyllabus.json();
             if (syllabusData && syllabusData.parsedResponse) {
                 console.log(`[App] Found modern syllabus record.`);
-                currentResponse = syllabusData.parsedResponse;
+                currentResponse = sanitizeObjClient(syllabusData.parsedResponse);
                 currentResponse.id = syllabusData.syllabusId;
                 currentResponse.name = syllabusData.name || 'Untitled';
 
@@ -380,7 +416,7 @@ async function loadSaved(id) {
             throw new Error('Invalid legacy data structure');
         }
 
-        currentResponse = saved.result;
+        currentResponse = sanitizeObjClient(saved.result);
         currentResponse.id = saved.id || id;
         currentResponse.name = saved.name || 'Untitled';
 
