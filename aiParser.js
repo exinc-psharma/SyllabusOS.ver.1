@@ -126,16 +126,35 @@ async function parseSyllabus(syllabusText, semester) {
     try {
       console.log(`[AI Parser] Attempt ${attempt + 1}/${maxAttempts} — sending ${inputText.length} chars`);
 
-      const completion = await groq.chat.completions.create({
-        model: 'llama-3.3-70b-versatile',
-        messages: [
-          { role: 'system', content: SYSTEM_PROMPT },
-          { role: 'user', content: userMsg }
-        ],
-        temperature: 0.1,
-        max_tokens: 6000
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 20000); // 20s timeout before Vercel kills us
+
+      const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${process.env.GROQ_API_KEY}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          model: 'llama-3.3-70b-versatile',
+          messages: [
+            { role: 'system', content: SYSTEM_PROMPT },
+            { role: 'user', content: userMsg }
+          ],
+          temperature: 0.1,
+          max_tokens: 6000
+        }),
+        signal: controller.signal
       });
 
+      clearTimeout(timeoutId);
+
+      if (!response.ok) {
+        const errText = await response.text();
+        throw new Error(`HTTP ${response.status} - ${errText}`);
+      }
+
+      const completion = await response.json();
       const raw = completion.choices[0].message.content.trim();
       console.log(`[AI Parser] Got ${raw.length} chars back`);
 
