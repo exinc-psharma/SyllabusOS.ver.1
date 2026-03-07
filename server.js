@@ -11,13 +11,19 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 // ─── Storage ─────────────────────────────────────────────────────────
-const DATA_DIR = path.join(__dirname, 'data');
+const isVercel = !!process.env.VERCEL;
+const DATA_DIR = isVercel ? '/tmp' : path.join(__dirname, 'data');
 const STORAGE_FILE = path.join(DATA_DIR, 'syllabi.json');
-if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
-if (!fs.existsSync(STORAGE_FILE)) fs.writeFileSync(STORAGE_FILE, '[]', 'utf8');
+
+if (!fs.existsSync(DATA_DIR)) {
+    try { fs.mkdirSync(DATA_DIR, { recursive: true }); } catch (e) { console.warn('Could not create data dir:', e.message); }
+}
+if (!fs.existsSync(STORAGE_FILE)) {
+    try { fs.writeFileSync(STORAGE_FILE, '[]', 'utf8'); } catch (e) { console.warn('Could not create storage file:', e.message); }
+}
 
 function readStorage() { try { return JSON.parse(fs.readFileSync(STORAGE_FILE, 'utf8')); } catch { return []; } }
-function writeStorage(data) { fs.writeFileSync(STORAGE_FILE, JSON.stringify(data, null, 2), 'utf8'); }
+function writeStorage(data) { try { fs.writeFileSync(STORAGE_FILE, JSON.stringify(data, null, 2), 'utf8'); } catch (e) { console.warn('Write failed:', e.message); } }
 
 // ─── Middleware ──────────────────────────────────────────────────────
 app.use(cors());
@@ -118,11 +124,15 @@ app.post('/api/parse-syllabus-pdf', upload.single('pdf'), async (req, res) => {
 const SYLLABUS_DATA_FILE = path.join(DATA_DIR, 'syllabus_data.json');
 const PROGRESS_DATA_FILE = path.join(DATA_DIR, 'progress_data.json');
 
-if (!fs.existsSync(SYLLABUS_DATA_FILE)) fs.writeFileSync(SYLLABUS_DATA_FILE, '{}', 'utf8');
-if (!fs.existsSync(PROGRESS_DATA_FILE)) fs.writeFileSync(PROGRESS_DATA_FILE, '{}', 'utf8');
+if (!fs.existsSync(SYLLABUS_DATA_FILE)) {
+    try { fs.writeFileSync(SYLLABUS_DATA_FILE, '{}', 'utf8'); } catch (e) { }
+}
+if (!fs.existsSync(PROGRESS_DATA_FILE)) {
+    try { fs.writeFileSync(PROGRESS_DATA_FILE, '{}', 'utf8'); } catch (e) { }
+}
 
 function readJsonFile(file) { try { return JSON.parse(fs.readFileSync(file, 'utf8')); } catch { return {}; } }
-function writeJsonFile(file, data) { fs.writeFileSync(file, JSON.stringify(data, null, 2), 'utf8'); }
+function writeJsonFile(file, data) { try { fs.writeFileSync(file, JSON.stringify(data, null, 2), 'utf8'); } catch (e) { } }
 
 // ─── Storage APIs (Legacy/History) ───────────────────────────────────
 app.get('/api/syllabi', (req, res) => {
