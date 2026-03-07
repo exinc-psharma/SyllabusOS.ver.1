@@ -108,8 +108,8 @@ h2 {
     justify-content: space-between;
     padding: 0.75rem 2rem;
     background: rgba(15, 23, 42, 0.8);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
+
+
     border-bottom: 1px solid var(--border);
     height: 56px;
     z-index: 100;
@@ -362,7 +362,7 @@ textarea {
     line-height: 1.6;
     color: var(--text-main);
     background: var(--bg-card);
-    backdrop-filter: blur(8px);
+
     transition: border-color 0.2s, box-shadow 0.2s;
     box-shadow: var(--shadow-sm);
 }
@@ -516,8 +516,8 @@ textarea::placeholder {
 
 .panel {
     background: var(--bg-card);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
+
+
     border-radius: var(--radius-lg);
     box-shadow: var(--shadow-sm);
     border: 1px solid var(--border);
@@ -650,7 +650,7 @@ textarea::placeholder {
     opacity: 0;
     transform: translateX(16px);
     box-shadow: var(--shadow-sm);
-    backdrop-filter: blur(4px);
+
 }
 
 .struct-card:hover {
@@ -855,7 +855,7 @@ textarea::placeholder {
     margin-bottom: 0.75rem;
     font-size: 0.6875rem;
     color: var(--text-muted);
-    backdrop-filter: blur(8px);
+
 }
 
 .status-indicator {
@@ -914,7 +914,7 @@ textarea::placeholder {
 
 .stat-card {
     background: var(--bg-card);
-    backdrop-filter: blur(12px);
+
     border: 1px solid var(--border);
     border-radius: var(--radius-lg);
     padding: 1rem;
@@ -988,7 +988,7 @@ textarea::placeholder {
 
 .card-section {
     background: var(--bg-card);
-    backdrop-filter: blur(12px);
+
     border: 1px solid var(--border);
     border-radius: var(--radius-lg);
     padding: 1.125rem;
@@ -1461,7 +1461,7 @@ textarea::placeholder {
 /* ═══ AI INSIGHTS ═══ */
 .insights-panel {
     background: var(--bg-card);
-    backdrop-filter: blur(12px);
+
     border: 1px solid var(--border);
     border-radius: var(--radius-lg);
     box-shadow: var(--shadow-sm);
@@ -1807,7 +1807,7 @@ textarea::placeholder {
     align-items: center;
     justify-content: center;
     animation: fadeIn 0.2s ease;
-    backdrop-filter: blur(4px);
+
 }
 
 .modal-overlay.hidden {
@@ -1948,8 +1948,8 @@ textarea::placeholder {
     border: 1px solid var(--border);
     border-radius: var(--radius-lg);
     padding: 1.5rem 2rem;
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
+
+
     box-shadow: var(--shadow-sm);
     align-items: center;
 }
@@ -2056,8 +2056,8 @@ textarea::placeholder {
     border: 1px solid var(--border);
     border-radius: var(--radius-lg);
     overflow: hidden;
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
+
+
     box-shadow: var(--shadow-sm);
     transition: border-color 0.2s;
 }
