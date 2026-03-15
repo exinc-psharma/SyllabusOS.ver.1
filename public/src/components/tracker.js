@@ -7,7 +7,7 @@ export async function renderProgressTracker(courses) {
     if (!container) return;
     container.innerHTML = "";
 
-    const syllabusId = (state.currentResponse && state.currentResponse.id) ? state.currentResponse.id : 'temp';
+    const liveId = (state.currentResponse && state.currentResponse.id) ? state.currentResponse.id : 'temp';
 
     const dateStart = $('date-start');
     const dateMid = $('date-midsem');
@@ -16,7 +16,7 @@ export async function renderProgressTracker(courses) {
 
     let trackerState = {};
     try {
-        trackerState = await loadProgressData(syllabusId);
+        trackerState = await loadProgressData(liveId);
     } catch (e) {
         console.warn('[Tracker] Could not fetch progress state:', e);
     }
@@ -44,7 +44,8 @@ export async function renderProgressTracker(courses) {
         const units = c.units || [];
         if (units.length === 0) return;
 
-        const courseId = c.course_code || c.course_name.slice(0, 15);
+        const courseSlug = (c.course_code || c.course_name || 'subj').replace(/[^a-zA-Z0-9]/g, '').slice(0, 12);
+        const courseId = `${idx}-${courseSlug}`;
         const courseDisplayName = c.course_name || courseId;
 
         html += `<div class="course-accordion">
@@ -99,7 +100,7 @@ export async function renderProgressTracker(courses) {
     } else {
         container.innerHTML = html;
         const actualTotal = container.querySelectorAll('.topic-item').length;
-        attachTrackerListeners(container, actualTotal, syllabusId);
+        attachTrackerListeners(container, actualTotal);
         
         const actualCompleted = container.querySelectorAll('.topic-item.completed').length;
         updateOverallProgress(actualCompleted, actualTotal);
@@ -125,13 +126,18 @@ export async function renderProgressTracker(courses) {
     }
 }
 
-function attachTrackerListeners(container, totalTopicsCount, syllabusId) {
+function attachTrackerListeners(container, totalTopicsCount) {
     async function save(topicItem) {
+        const liveId = (state.currentResponse && state.currentResponse.id) ? state.currentResponse.id : 'temp';
         const key = topicItem.dataset.key;
         const cb = topicItem.querySelector('.topic-checkbox');
         const nt = topicItem.querySelector('.topic-notes');
         const st = topicItem.querySelector('.topic-star');
-        await saveTopicProgress(syllabusId, key, cb.checked, nt.value, st.classList.contains('active'));
+        
+        // Debug log to help identify persistence issues
+        console.log(`[Tracker] Auto-saving topic "${key}" to syllabus "${liveId}"...`);
+        
+        await saveTopicProgress(liveId, key, cb.checked, nt.value, st.classList.contains('active'));
 
         const currentCompletedCount = container.querySelectorAll('.topic-item.completed').length;
         const currentTotalTopics = container.querySelectorAll('.topic-item').length;
