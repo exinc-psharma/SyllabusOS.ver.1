@@ -98,41 +98,66 @@ if(generatePlanBtn) {
         if(aiProcessingSteps) {
             aiProcessingSteps.classList.remove('hidden');
             const steps = aiProcessingSteps.querySelectorAll('.ai-step');
-            steps.forEach(s => { s.classList.remove('active', 'done'); });
-            let stepIdx = 0;
-            const stepInterval = setInterval(() => {
-                if (stepIdx > 0 && stepIdx <= 4) steps[stepIdx - 1]?.classList.replace('active', 'done');
-                if (stepIdx < 4) steps[stepIdx]?.classList.add('active');
-                stepIdx++;
-                if (stepIdx > 4) clearInterval(stepInterval);
-            }, 1200);
-
-            try {
-                if (state.uploadedPdfFile) {
-                    const result = await parseSyllabusPdf(state.uploadedPdfFile);
-                    state.currentRawText = result.extractedText || '[PDF text extracted]';
-                    state.currentResponse = result;
-                } else {
-                    state.currentRawText = text;
-                    const result = await parseSyllabusText(text);
-                    state.currentResponse = result;
+            steps.forEach(s => { s.classList.remove('active', 'done', 'error'); });
+            
+            let currentStepIdx = 0;
+            const updateSteps = (idx, status = 'active') => {
+                if (idx > 0) {
+                    steps[idx-1].classList.remove('active');
+                    steps[idx-1].classList.add(status === 'error' && idx-1 === currentStepIdx ? 'error' : 'done');
                 }
+                if (idx < steps.length) {
+                    steps[idx].classList.add(status);
+                }
+            };
+
+            const stepInterval = setInterval(() => {
+                if (currentStepIdx < steps.length - 1) {
+                    currentStepIdx++;
+                    updateSteps(currentStepIdx);
+                }
+            }, 800);
+
+            // Ensure steps are visible for at least 2s
+            const minWait = new Promise(resolve => setTimeout(resolve, 2000));
+            
+            try {
+                updateSteps(0);
+                let result;
+                if (state.uploadedPdfFile) {
+                    result = await parseSyllabusPdf(state.uploadedPdfFile);
+                } else {
+                    result = await parseSyllabusText(text);
+                }
+                
+                await minWait;
+                state.currentResponse = result;
+                state.currentRawText = state.uploadedPdfFile ? (result.extractedText || '[PDF text extracted]') : text;
+                
             } catch (err) {
                 console.warn('API failed:', err);
+                // Mark current step as error
+                steps[currentStepIdx].classList.remove('active');
+                steps[currentStepIdx].classList.add('error');
+                
+                await minWait; // Still wait for min time
                 state.currentResponse = { source: 'fallback', summary: { total_courses: 0, total_credits: 0 }, courses: [], deliverables: [] };
                 state.currentRawText = text || '';
+                await new Promise(r => setTimeout(r, 1000)); // Show error slightly longer
             }
 
+            clearInterval(stepInterval);
+            
             if(rawTextDisplay) rawTextDisplay.textContent = state.currentRawText;
 
             if (state.currentResponse.source === 'fallback') {
                 if(parseBadge) parseBadge.classList.add('fallback'); 
                 if(badgeText) badgeText.textContent = 'Using Demo Data';
                 const reason = state.currentResponse.error_reason || '';
-                if (reason.includes('rate_limit')) {
-                    showToast('Groq rate limit hit — try again in ~1 hour, or upgrade your Groq plan.', 'error');
+                if (reason && reason.includes('rate_limit')) {
+                    showToast('Groq rate limit hit — try again in ~1 hour.', 'error');
                 } else {
-                    showToast('AI failed — using demo data. ' + (reason ? '(' + reason.slice(0, 80) + ')' : ''), 'error');
+                    showToast('AI failed — using demo data.', 'error');
                 }
             } else {
                 if(parseBadge) parseBadge.classList.remove('fallback'); 
@@ -155,11 +180,17 @@ if(generatePlanBtn) {
             generatePlanBtn.disabled = false;
             generatePlanBtn.style.opacity = '1';
 
-            clearInterval(stepInterval);
-            steps.forEach(s => { s.classList.remove('active'); s.classList.add('done'); });
-            setTimeout(() => aiProcessingSteps.classList.add('hidden'), 800);
-
-            switchScreen(2);
+            steps.forEach(s => { 
+                if (!s.classList.contains('error')) {
+                    s.classList.remove('active'); 
+                    s.classList.add('done'); 
+                }
+            });
+            
+            setTimeout(() => {
+                aiProcessingSteps.classList.add('hidden');
+                switchScreen(2);
+            }, 600);
         }
     });
 }

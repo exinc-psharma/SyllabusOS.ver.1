@@ -7,7 +7,7 @@ const path = require('path');
 const fs = require('fs');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
-const { validationResult } = require('express-validator');
+const { body, validationResult } = require('express-validator');
 const { createClient } = require('@supabase/supabase-js');
 const { parseSyllabus } = require('./aiParser');
 
@@ -19,9 +19,20 @@ const supabase = createClient(
 
 
 // Security Check: Ensure Critical Secrets Exist
-if (!process.env.GROQ_API_KEY) {
-    console.error('[Security] FATAL: GROQ_API_KEY environment variable is missing.');
-    if (!process.env.VERCEL) process.exit(1);
+const MISSING_ENV_VARS = [];
+if (!process.env.GROQ_API_KEY) MISSING_ENV_VARS.push('GROQ_API_KEY');
+if (!process.env.SUPABASE_URL) MISSING_ENV_VARS.push('SUPABASE_URL');
+if (!process.env.SUPABASE_ANON_KEY) MISSING_ENV_VARS.push('SUPABASE_ANON_KEY');
+
+if (MISSING_ENV_VARS.length > 0) {
+    console.error(`[Security] FATAL: Missing Environment Variables: ${MISSING_ENV_VARS.join(', ')}`);
+    console.error('[Security] Ensure these are set in your Vercel Project Settings or local .env file.');
+    if (!process.env.VERCEL) {
+        console.error('[Security] Local environment detected. Exiting...');
+        process.exit(1);
+    } else {
+        console.warn('[Security] Vercel environment detected. Server will run but AI features will fail.');
+    }
 }
 
 const app = express();
