@@ -98,12 +98,12 @@ export async function renderProgressTracker(courses) {
         container.innerHTML = '<div class="empty-state-container">Courses found, but no units/topics were extracted.</div>';
     } else {
         container.innerHTML = html;
-        attachTrackerListeners(container, totalTopicsCount, syllabusId);
+        const actualTotal = container.querySelectorAll('.topic-item').length;
+        attachTrackerListeners(container, actualTotal, syllabusId);
+        
+        const actualCompleted = container.querySelectorAll('.topic-item.completed').length;
+        updateOverallProgress(actualCompleted, actualTotal);
     }
-
-    let completedCount = 0;
-    Object.values(trackerState).forEach(s => { if (s.completed) completedCount++; });
-    updateOverallProgress(completedCount, totalTopicsCount);
 
     const goalEl = $('current-goal-text');
     const goalHeader = document.querySelector('.goal-header');
@@ -133,8 +133,9 @@ function attachTrackerListeners(container, totalTopicsCount, syllabusId) {
         const st = topicItem.querySelector('.topic-star');
         await saveTopicProgress(syllabusId, key, cb.checked, nt.value, st.classList.contains('active'));
 
-        const completedCount = container.querySelectorAll('.topic-item.completed').length;
-        updateOverallProgress(completedCount, totalTopicsCount);
+        const currentCompletedCount = container.querySelectorAll('.topic-item.completed').length;
+        const currentTotalTopics = container.querySelectorAll('.topic-item').length;
+        updateOverallProgress(currentCompletedCount, currentTotalTopics);
     }
 
     // Event Delegation for performance

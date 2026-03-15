@@ -137,7 +137,7 @@ export function populateDashboard(resp) {
                     busyWeeks: $('busy-weeks-list')?.innerHTML || ''
                 };
 
-                await saveFrozenSyllabusData(id, state.currentRawText, state.currentResponse, planData, htmlContent);
+                await saveFrozenSyllabusData(id, state.currentRawText, state.currentResponse, planData, htmlContent, state.currentResponse.name);
 
                 // Refresh tracker UI immediately
                 renderProgressTracker(courses);

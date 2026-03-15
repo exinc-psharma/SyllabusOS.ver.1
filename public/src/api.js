@@ -52,9 +52,10 @@ export async function deleteSyllabus(id) {
     return fetch(`/api/syllabi/${id}`, { method: 'DELETE' });
 }
 
-export async function saveFrozenSyllabusData(id, rawText, responseData, studyPlanData, htmlContent) {
+export async function saveFrozenSyllabusData(id, rawText, responseData, studyPlanData, htmlContent, name) {
     const data = {
         syllabusId: id,
+        name: name || responseData.name || 'Untitled',
         parsedCourses: responseData.courses,
         parsedResponse: responseData,
         rawText: rawText,
