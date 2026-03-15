@@ -509,6 +509,16 @@ textarea::placeholder {
     background: var(--confidence-high);
 }
 
+.ai-step.error {
+    opacity: 1;
+    color: var(--exam);
+}
+
+.ai-step.error .ai-step-dot {
+    background: var(--exam);
+    box-shadow: 0 0 8px rgba(239, 68, 68, 0.4);
+}
+
 @keyframes stepPulse {
 
     0%,
