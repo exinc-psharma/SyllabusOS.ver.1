@@ -85,11 +85,16 @@ export function populateDashboard(resp) {
     }
 
     // Initial empty states for schedule sections
+    // Only show empty state if not already populated by a load/restore
     const bwList = $('busy-weeks-list');
-    if (bwList) bwList.innerHTML = '<div class="empty-state"><span>Enter dates above to generate busy weeks.</span></div>';
+    if (bwList && !bwList.querySelector('.busy-week-item')) {
+        bwList.innerHTML = '<div class="empty-state"><span>Enter dates above to generate busy weeks.</span></div>';
+    }
     
     const spList = $('study-plan-list');
-    if (spList) spList.innerHTML = '<div class="empty-state"><span>Enter dates above to generate study plan.</span></div>';
+    if (spList && !spList.querySelector('.study-week-block')) {
+        spList.innerHTML = '<div class="empty-state"><span>Enter dates above to generate study plan.</span></div>';
+    }
 
     // Hook up schedule generation
     const genBtn = $('generate-schedule-btn');

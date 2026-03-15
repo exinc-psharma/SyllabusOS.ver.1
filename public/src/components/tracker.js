@@ -67,7 +67,7 @@ export async function renderProgressTracker(courses) {
 
             topics.forEach((topic, tIdx) => {
                 totalTopicsCount++;
-                const topicKey = `${syllabusId}*${courseId}*${unitName}*${tIdx}`;
+                const topicKey = `${courseId}*${unitName}*${tIdx}`;
                 const st = trackerState[topicKey] || { completed: false, notes: '', revision: false };
 
                 const compClass = st.completed ? 'completed' : '';

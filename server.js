@@ -282,6 +282,29 @@ app.post('/api/syllabi', authenticate, [
             .single();
 
         if (error) throw error;
+
+        // Migration: Move any temp progress/state to the new permanent ID
+        const tempId = req.body.tempId;
+        if (tempId) {
+            console.log(`[Migration] Moving data from ${tempId} to ${data.id} for user ${req.userId}`);
+            
+            // 1. Migrate syllabus_states
+            await supabase
+                .from('syllabus_states')
+                .update({ syllabus_id: data.id })
+                .eq('syllabus_id', tempId)
+                .eq('user_id', req.userId);
+
+            // 2. Migrate progress
+            // Note: Since we are changing the key format in the next step, 
+            // the old keys might still be there. But the syllabus_id column update is primary.
+            await supabase
+                .from('progress')
+                .update({ syllabus_id: data.id })
+                .eq('syllabus_id', tempId)
+                .eq('user_id', req.userId);
+        }
+
         res.json({ success: true, id: data.id });
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -318,8 +341,7 @@ app.post('/api/syllabus', authenticate, [
                 syllabus_id: syllabusId,
                 user_id: req.userId,
                 data: sanitizedData,
-                updated_at: new Date().toISOString()
-            }, { onConflict: 'syllabus_id, user_id' }); // Note: Ensure unique constraint in SQL if needed, or just let it handle it
+            }, { onConflict: 'user_id, syllabus_id' }); // Matches unique index
 
         if (error) throw error;
         res.json({ success: true });
@@ -364,7 +386,7 @@ app.post('/api/progress', authenticate, [
                 notes,
                 revision,
                 updated_at: new Date().toISOString()
-            }, { onConflict: 'syllabus_id, topic_id' });
+            }, { onConflict: 'user_id, syllabus_id, topic_id' }); // Matches unique index
 
         if (error) throw error;
         res.json({ success: true });
