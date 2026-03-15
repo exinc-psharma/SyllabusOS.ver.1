@@ -274,11 +274,11 @@ if(saveConfirm) {
                 
                 renderProgressTracker(state.currentResponse.courses);
             }
-            showToast(data.success ? `"${name}" saved!` : 'Save failed.', data.success ? 'success' : 'error');
+            showToast(data.success ? `"${name}" saved!` : 'Save failed: ' + (data.error || 'Server error'), data.success ? 'success' : 'error');
             if (data.success) loadHistoryUI();
         } catch (err) {
             console.error('[App] Save error:', err);
-            showToast('Save failed.', 'error');
+            showToast('Save failed: ' + err.message, 'error');
         }
         saveModal.classList.add('hidden');
     });
