@@ -1,16 +1,20 @@
 // ─── DOM SECURITY (XSS PREVENTION) ───────────────────────────────────
-export const sanitizeObjClient = (obj) => {
+// We allow HTML for specific fields ending in "Html" (like schedule content)
+export const sanitizeObjClient = (obj, keyName = "") => {
     if (typeof obj === 'string') {
+        // If the key suggests this is HTML content, don't escape < and >
+        if (keyName.toLowerCase().endsWith('html')) return obj;
+        
         return obj.replace(/&(?!(amp|lt|gt|quot|#39);)/g, '&amp;')
                   .replace(/</g, '&lt;')
                   .replace(/>/g, '&gt;')
                   .replace(/'/g, '&#39;')
                   .replace(/"/g, '&quot;');
     }
-    if (Array.isArray(obj)) return obj.map(sanitizeObjClient);
+    if (Array.isArray(obj)) return obj.map(item => sanitizeObjClient(item, keyName));
     if (obj !== null && typeof obj === 'object') {
         const sanitized = {};
-        for (const [key, val] of Object.entries(obj)) sanitized[key] = sanitizeObjClient(val);
+        for (const [key, val] of Object.entries(obj)) sanitized[key] = sanitizeObjClient(val, key);
         return sanitized;
     }
     return obj;

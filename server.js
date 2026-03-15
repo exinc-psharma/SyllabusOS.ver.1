@@ -109,8 +109,12 @@ const validateRequest = (req, res, next) => {
 };
 
 // Security: Deep JSON HTML Escaper
-const sanitizeObj = (obj) => {
+// We allow HTML for fields ending in "Html" to preserve schedule structure
+const sanitizeObj = (obj, keyName = "") => {
     if (typeof obj === 'string') {
+        // Bypass escaping for recognized HTML fields
+        if (keyName.toLowerCase().endsWith('html')) return obj;
+
         // Idempotent escaping: Only escape '&' if not part of an existing entity
         return obj.replace(/&(?!(amp|lt|gt|quot|#39);)/g, '&amp;')
                   .replace(/</g, '&lt;')
@@ -118,10 +122,10 @@ const sanitizeObj = (obj) => {
                   .replace(/'/g, '&#39;')
                   .replace(/"/g, '&quot;');
     }
-    if (Array.isArray(obj)) return obj.map(sanitizeObj);
+    if (Array.isArray(obj)) return obj.map(item => sanitizeObj(item, keyName));
     if (obj !== null && typeof obj === 'object') {
         const sanitized = {};
-        for (const [key, val] of Object.entries(obj)) sanitized[key] = sanitizeObj(val);
+        for (const [key, val] of Object.entries(obj)) sanitized[key] = sanitizeObj(val, key);
         return sanitized;
     }
     return obj;
