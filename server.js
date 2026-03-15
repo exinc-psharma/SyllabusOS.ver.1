@@ -5,30 +5,113 @@ const multer = require('multer');
 const pdfParse = require('pdf-parse');
 const path = require('path');
 const fs = require('fs');
+const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
+const { validationResult } = require('express-validator');
+const { createClient } = require('@supabase/supabase-js');
 const { parseSyllabus } = require('./aiParser');
+
+// ─── Supabase Initialization ────────────────────────────────────────
+const supabase = createClient(
+    process.env.SUPABASE_URL || '',
+    process.env.SUPABASE_ANON_KEY || ''
+);
+
+
+// Security Check: Ensure Critical Secrets Exist
+if (!process.env.GROQ_API_KEY) {
+    console.error('[Security] FATAL: GROQ_API_KEY environment variable is missing.');
+    if (!process.env.VERCEL) process.exit(1);
+}
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+app.set('trust proxy', 1); // For rate limiting behind Vercel/proxies
 
-// ─── Storage ─────────────────────────────────────────────────────────
+// ─── Storage Utility ────────────────────────────────────────────────
 const isVercel = !!process.env.VERCEL;
 const DATA_DIR = isVercel ? '/tmp' : path.join(__dirname, 'data');
-const STORAGE_FILE = path.join(DATA_DIR, 'syllabi.json');
+const HISTORY_FILE = path.join(DATA_DIR, 'syllabi.json');
+const DASHBOARD_FILE = path.join(DATA_DIR, 'syllabus_data.json');
+const PROGRESS_FILE = path.join(DATA_DIR, 'progress_data.json');
 
-if (!fs.existsSync(DATA_DIR)) {
-    try { fs.mkdirSync(DATA_DIR, { recursive: true }); } catch (e) { console.warn('Could not create data dir:', e.message); }
-}
-if (!fs.existsSync(STORAGE_FILE)) {
-    try { fs.writeFileSync(STORAGE_FILE, '[]', 'utf8'); } catch (e) { console.warn('Could not create storage file:', e.message); }
-}
+[DATA_DIR, HISTORY_FILE, DASHBOARD_FILE, PROGRESS_FILE].forEach(p => {
+    const isDir = p === DATA_DIR;
+    if (!fs.existsSync(p)) {
+        try {
+            if (isDir) fs.mkdirSync(p, { recursive: true });
+            else fs.writeFileSync(p, p === HISTORY_FILE ? '[]' : '{}', 'utf8');
+        } catch (e) { console.warn(`Storage init failed for ${p}:`, e.message); }
+    }
+});
 
-function readStorage() { try { return JSON.parse(fs.readFileSync(STORAGE_FILE, 'utf8')); } catch { return []; } }
-function writeStorage(data) { try { fs.writeFileSync(STORAGE_FILE, JSON.stringify(data, null, 2), 'utf8'); } catch (e) { console.warn('Write failed:', e.message); } }
+function db(file) {
+    return {
+        read: () => { try { return JSON.parse(fs.readFileSync(file, 'utf8')); } catch { return file === HISTORY_FILE ? [] : {}; } },
+        write: (data) => { try { fs.writeFileSync(file, JSON.stringify(data, null, 2), 'utf8'); } catch (e) { console.warn(`Write to ${file} failed:`, e.message); } }
+    };
+}
 
 // ─── Middleware ──────────────────────────────────────────────────────
-app.use(cors());
-app.use(express.json({ limit: '5mb' }));
+app.use(helmet({ contentSecurityPolicy: false })); // Basic Security Headers (disabled CSP for inline scripts in demo)
+app.use(cors({ origin: process.env.ALLOWED_ORIGIN || '*' })); // Restrict in production
+app.use(express.json({ limit: '1mb' })); // Reduced from 5mb to prevent DoS via massive payloads
+app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));
 app.use(express.static(path.join(__dirname, 'public')));
+
+
+// Security: Rate Limiters
+const globalLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, max: 150,
+    message: { error: 'Too many requests from this IP, please try again later.' }
+});
+const aiLimiter = rateLimit({
+    windowMs: 60 * 60 * 1000, max: 30, // 30 AI requests per hour
+    message: { error: 'AI Parsing limit exceeded. Please try again later.' }
+});
+
+app.use('/api/', globalLimiter);
+
+// Security: Auth & Validation Helpers
+const authenticate = (req, res, next) => {
+    const authHeader = req.headers['authorization'];
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        console.warn(`[Security] Unauthorized access attempt to ${req.path}`);
+        return res.status(401).json({ error: 'Unauthorized: Session token required' });
+    }
+    // For now, we use the client-generated random token as the persistent userId in Supabase
+    req.userId = authHeader.split(' ')[1]; 
+    next();
+};
+
+
+const validateRequest = (req, res, next) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        console.warn(`[Security] Validation failed on ${req.path}`, errors.array());
+        return res.status(400).json({ error: 'Invalid input data', details: errors.array() });
+    }
+    next();
+};
+
+// Security: Deep JSON HTML Escaper
+const sanitizeObj = (obj) => {
+    if (typeof obj === 'string') {
+        // Idempotent escaping: Only escape '&' if not part of an existing entity
+        return obj.replace(/&(?!(amp|lt|gt|quot|#39);)/g, '&amp;')
+                  .replace(/</g, '&lt;')
+                  .replace(/>/g, '&gt;')
+                  .replace(/'/g, '&#39;')
+                  .replace(/"/g, '&quot;');
+    }
+    if (Array.isArray(obj)) return obj.map(sanitizeObj);
+    if (obj !== null && typeof obj === 'object') {
+        const sanitized = {};
+        for (const [key, val] of Object.entries(obj)) sanitized[key] = sanitizeObj(val);
+        return sanitized;
+    }
+    return obj;
+};
 
 const upload = multer({
     storage: multer.memoryStorage(),
@@ -87,9 +170,11 @@ const MOCK_DATA = {
 };
 
 // ─── API: Parse text ─────────────────────────────────────────────────
-app.post('/api/parse-syllabus', async (req, res) => {
+app.post('/api/parse-syllabus', aiLimiter, [
+    body('syllabusText').trim().isLength({ min: 10, max: 80000 }).withMessage('Text must be between 10 and 80,000 characters.'),
+    validateRequest
+], async (req, res) => {
     const { syllabusText } = req.body;
-    if (!syllabusText || syllabusText.trim().length === 0) return res.status(400).json({ error: 'syllabusText is required' });
     try {
         console.log(`[Server] /api/parse-syllabus — ${syllabusText.length} chars`);
         const result = await parseSyllabus(syllabusText);
@@ -102,7 +187,7 @@ app.post('/api/parse-syllabus', async (req, res) => {
 });
 
 // ─── API: Parse PDF ──────────────────────────────────────────────────
-app.post('/api/parse-syllabus-pdf', upload.single('pdf'), async (req, res) => {
+app.post('/api/parse-syllabus-pdf', aiLimiter, upload.single('pdf'), async (req, res) => {
     if (!req.file) return res.status(400).json({ error: 'No PDF uploaded' });
     try {
         const pdfData = await pdfParse(req.file.buffer);
@@ -121,122 +206,182 @@ app.post('/api/parse-syllabus-pdf', upload.single('pdf'), async (req, res) => {
     }
 });
 
-const SYLLABUS_DATA_FILE = path.join(DATA_DIR, 'syllabus_data.json');
-const PROGRESS_DATA_FILE = path.join(DATA_DIR, 'progress_data.json');
+// ─── Storage APIs (Supabase) ─────────────────────────────────────────
+app.get('/api/syllabi', authenticate, async (req, res) => {
+    try {
+        const { data, error } = await supabase
+            .from('syllabi')
+            .select('id, name, result, created_at')
+            .eq('user_id', req.userId)
+            .order('created_at', { ascending: false });
 
-if (!fs.existsSync(SYLLABUS_DATA_FILE)) {
-    try { fs.writeFileSync(SYLLABUS_DATA_FILE, '{}', 'utf8'); } catch (e) { }
-}
-if (!fs.existsSync(PROGRESS_DATA_FILE)) {
-    try { fs.writeFileSync(PROGRESS_DATA_FILE, '{}', 'utf8'); } catch (e) { }
-}
+        if (error) throw error;
 
-function readJsonFile(file) { try { return JSON.parse(fs.readFileSync(file, 'utf8')); } catch { return {}; } }
-function writeJsonFile(file, data) { try { fs.writeFileSync(file, JSON.stringify(data, null, 2), 'utf8'); } catch (e) { } }
-
-// ─── Storage APIs (Legacy/History) ───────────────────────────────────
-app.get('/api/syllabi', (req, res) => {
-    const data = readStorage();
-    res.json(data.map(s => ({
-        id: s.id, name: s.name, savedAt: s.savedAt,
-        courseCount: s.result?.courses?.length || 0,
-        deliverableCount: s.result?.deliverables?.length || 0,
-        credits: s.result?.summary?.total_credits || 0
-    })));
-});
-
-app.get('/api/syllabi/:id', (req, res) => {
-    const item = readStorage().find(s => s.id === req.params.id);
-    if (!item) return res.status(404).json({ error: 'Not found' });
-    res.json(item);
-});
-
-app.post('/api/syllabi', (req, res) => {
-    const { name, rawText, result, tempId } = req.body;
-    if (!result) return res.status(400).json({ error: 'result required' });
-
-    const data = readStorage();
-    const newId = Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
-    const entry = { id: newId, name: name || 'Untitled', rawText: rawText || '', result, savedAt: new Date().toISOString() };
-    data.unshift(entry);
-    writeStorage(data);
-
-    // Migration logic for detailed storage and progress
-    if (tempId && tempId !== newId) {
-        // Migrate detailed syllabus state
-        const sDb = readJsonFile(SYLLABUS_DATA_FILE);
-        if (sDb[tempId]) {
-            sDb[newId] = { ...sDb[tempId], syllabusId: newId, updatedAt: new Date().toISOString() };
-            writeJsonFile(SYLLABUS_DATA_FILE, sDb);
-            console.log(`[Server] Migrated syllabus state from ${tempId} to ${newId}`);
-        }
-
-        // Migrate progress data
-        const pDb = readJsonFile(PROGRESS_DATA_FILE);
-        if (pDb[tempId]) {
-            pDb[newId] = { ...pDb[tempId] };
-            // Update topic keys if they contain the ID
-            const newProgress = {};
-            Object.keys(pDb[newId]).forEach(oldTopicKey => {
-                const newTopicKey = oldTopicKey.replace(tempId, newId);
-                newProgress[newTopicKey] = pDb[newId][oldTopicKey];
-            });
-            pDb[newId] = newProgress;
-            writeJsonFile(PROGRESS_DATA_FILE, pDb);
-            console.log(`[Server] Migrated progress data from ${tempId} to ${newId}`);
-        }
+        res.json(data.map(s => ({
+            id: s.id,
+            name: s.name,
+            savedAt: s.created_at,
+            courseCount: s.result?.courses?.length || 0,
+            deliverableCount: s.result?.deliverables?.length || 0,
+            credits: s.result?.summary?.total_credits || 0
+        })));
+    } catch (err) {
+        res.status(500).json({ error: err.message });
     }
-
-    res.json({ success: true, id: newId });
 });
 
-app.delete('/api/syllabi/:id', (req, res) => {
-    let data = readStorage();
-    const before = data.length;
-    data = data.filter(s => s.id !== req.params.id);
-    if (data.length === before) return res.status(404).json({ error: 'Not found' });
-    writeStorage(data);
-    res.json({ success: true });
+app.get('/api/syllabi/:id', authenticate, async (req, res) => {
+    try {
+        const { data, error } = await supabase
+            .from('syllabi')
+            .select('*')
+            .eq('id', req.params.id)
+            .eq('user_id', req.userId)
+            .single();
+
+        if (error) return res.status(404).json({ error: 'Not found' });
+        res.json(data);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
 });
 
-// ─── NEW: Per-Syllabus Persistence APIs ──────────────────────────────
-app.post('/api/syllabus', (req, res) => {
-    const { syllabusId } = req.body;
-    if (!syllabusId) return res.status(400).json({ error: 'syllabusId required' });
+app.post('/api/syllabi', authenticate, [
+    body('name').optional().trim().escape().isLength({ max: 100 }),
+    body('rawText').optional().trim(),
+    body('result').notEmpty(),
+    validateRequest
+], async (req, res) => {
+    try {
+        const { name, rawText, result } = req.body;
+        const sanitizedResult = sanitizeObj(result);
 
-    const db = readJsonFile(SYLLABUS_DATA_FILE);
-    // Save entire payload to preserve HTML sections and frozen data
-    db[syllabusId] = {
-        ...req.body,
-        updatedAt: new Date().toISOString()
-    };
-    writeJsonFile(SYLLABUS_DATA_FILE, db);
-    res.json({ success: true });
+        const { data, error } = await supabase
+            .from('syllabi')
+            .insert([{
+                user_id: req.userId,
+                name: name || 'Untitled',
+                raw_text: rawText || '',
+                result: sanitizedResult
+            }])
+            .select()
+            .single();
+
+        if (error) throw error;
+        res.json({ success: true, id: data.id });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
 });
 
-app.get('/api/syllabus/:id', (req, res) => {
-    const db = readJsonFile(SYLLABUS_DATA_FILE);
-    const item = db[req.params.id];
-    if (!item) return res.json(null);
-    res.json(item);
+app.delete('/api/syllabi/:id', authenticate, async (req, res) => {
+    try {
+        const { error } = await supabase
+            .from('syllabi')
+            .delete()
+            .eq('id', req.params.id)
+            .eq('user_id', req.userId);
+
+        if (error) throw error;
+        res.json({ success: true });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
 });
 
-app.post('/api/progress', (req, res) => {
-    const { syllabusId, topicId, completed, notes, revision } = req.body;
-    if (!syllabusId || !topicId) return res.status(400).json({ error: 'syllabusId and topicId required' });
+// ─── Syllabus State (Dashboard Data) ─────────────────────────────────
+app.post('/api/syllabus', authenticate, [
+    body('syllabusId').trim().notEmpty(),
+    validateRequest
+], async (req, res) => {
+    try {
+        const { syllabusId } = req.body;
+        const sanitizedData = sanitizeObj(req.body);
 
-    const db = readJsonFile(PROGRESS_DATA_FILE);
-    if (!db[syllabusId]) db[syllabusId] = {};
-    db[syllabusId][topicId] = { completed, notes, revision, updatedAt: new Date().toISOString() };
+        const { error } = await supabase
+            .from('syllabus_states')
+            .upsert({
+                syllabus_id: syllabusId,
+                user_id: req.userId,
+                data: sanitizedData,
+                updated_at: new Date().toISOString()
+            }, { onConflict: 'syllabus_id, user_id' }); // Note: Ensure unique constraint in SQL if needed, or just let it handle it
 
-    writeJsonFile(PROGRESS_DATA_FILE, db);
-    res.json({ success: true });
+        if (error) throw error;
+        res.json({ success: true });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
 });
 
-app.get('/api/progress/:id', (req, res) => {
-    const db = readJsonFile(PROGRESS_DATA_FILE);
-    const progress = db[req.params.id] || {};
-    res.json(progress);
+app.get('/api/syllabus/:id', authenticate, async (req, res) => {
+    try {
+        const { data, error } = await supabase
+            .from('syllabus_states')
+            .select('*')
+            .eq('syllabus_id', req.params.id)
+            .eq('user_id', req.userId)
+            .single();
+
+        if (error || !data) return res.json(null);
+        res.json(data.data);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// ─── Progress Tracking ───────────────────────────────────────────────
+app.post('/api/progress', authenticate, [
+    body('syllabusId').trim().notEmpty(),
+    body('topicId').trim().notEmpty(),
+    body('completed').isBoolean(),
+    validateRequest
+], async (req, res) => {
+    try {
+        const { syllabusId, topicId, completed, notes, revision } = req.body;
+        
+        const { error } = await supabase
+            .from('progress')
+            .upsert({
+                syllabus_id: syllabusId,
+                user_id: req.userId,
+                topic_id: topicId,
+                completed,
+                notes,
+                revision,
+                updated_at: new Date().toISOString()
+            }, { onConflict: 'syllabus_id, topic_id' });
+
+        if (error) throw error;
+        res.json({ success: true });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.get('/api/progress/:id', authenticate, async (req, res) => {
+    try {
+        const { data, error } = await supabase
+            .from('progress')
+            .select('*')
+            .eq('syllabus_id', req.params.id)
+            .eq('user_id', req.userId);
+
+        if (error) throw error;
+        
+        const formatted = {};
+        data.forEach(item => {
+            formatted[item.topic_id] = {
+                completed: item.completed,
+                notes: item.notes,
+                revision: item.revision,
+                updatedAt: item.updated_at
+            };
+        });
+        res.json(formatted);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
 });
 
 if (require.main === module) {

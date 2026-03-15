@@ -1,343 +1,116 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SyllabusOS - AI Semester Command Center</title>
-    <meta name="description"
-        content="Transform unstructured syllabus text into an intelligent academic planning dashboard with AI.">
+    <title>SyllabusOS - AI-Powered Academic Control</title>
+    <link rel="stylesheet" href="landing.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="styles.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
 </head>
-
 <body>
-    <!-- Top Nav -->
-    <nav class="top-nav">
-        <div class="logo" id="logo-home" title="Go Home">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <rect width="24" height="24" rx="6" fill="#6366F1" />
-                <path d="M7 12L10.5 15.5L18 8" stroke="white" stroke-width="2" stroke-linecap="round"
-                    stroke-linejoin="round" />
-            </svg>
-            SyllabusOS
-        </div>
-        <div class="nav-actions">
-            <button id="history-btn" class="nav-btn" title="View saved syllabi">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <circle cx="12" cy="12" r="10" />
-                    <polyline points="12 6 12 12 16 14" />
-                </svg>
-                History
-            </button>
-            <button id="upload-new-btn" class="nav-btn hidden">+ New Syllabus</button>
-        </div>
-    </nav>
 
-    <!-- History Drawer -->
-    <div class="drawer-overlay" id="drawer-overlay"></div>
-    <aside class="history-drawer" id="history-drawer">
-        <div class="drawer-header">
-            <h3>Saved Syllabi</h3>
-            <button class="drawer-close" id="drawer-close">&times;</button>
-        </div>
-        <div class="drawer-content" id="drawer-list">
-            <!-- Filled by JS -->
-        </div>
-    </aside>
-
-    <!-- Toast Container -->
-    <div class="toast-container" id="toast-container"></div>
-
-    <!-- Save Modal -->
-    <div class="modal-overlay hidden" id="save-modal">
-        <div class="modal-card">
-            <h3>Save Syllabus</h3>
-            <p>Give it a name so you can find it later.</p>
-            <input type="text" id="save-name-input" placeholder="e.g. ECE Sem V, CS 301..." autocomplete="off">
-            <div class="modal-actions">
-                <button class="secondary-btn" id="save-cancel">Cancel</button>
-                <button class="primary-btn" id="save-confirm">Save</button>
-            </div>
+    <!-- PRELOADER -->
+    <div class="preloader" id="preloader">
+        <div class="preloader-inner">
+            <div class="preloader-ring"></div>
+            <span class="preloader-text">SyllabusOS<span class="accent-dot">.</span></span>
         </div>
     </div>
 
-    <!-- ═══════════════════════════════════════════════════════════ -->
-    <!-- SCREEN 1: INGESTOR                                         -->
-    <!-- ═══════════════════════════════════════════════════════════ -->
-    <main class="screen active" id="screen-1">
-        <div class="ingestor-container">
-            <h1>AI Semester Command Center <span class="ai-badge">✦ AI Powered</span></h1>
-            <p class="subtitle">Turn any syllabus PDF into a structured AI-powered semester dashboard in seconds.</p>
+    <!-- Cursor Glow -->
+    <div class="cursor-glow" id="cursor-glow" aria-hidden="true"></div>
 
-            <div class="input-wrapper">
-                <label for="syllabus-input">Paste Your Syllabus Text</label>
-                <textarea id="syllabus-input"
-                    placeholder="Paste your syllabus content here — course tables, assignments, unit breakdowns, grading policies..."></textarea>
-            </div>
+    <!-- Background Blobs -->
+    <div class="bg-blob bg-blob-1" aria-hidden="true"></div>
+    <div class="bg-blob bg-blob-2" aria-hidden="true"></div>
 
-            <!-- PDF Upload Zone -->
-            <label class="upload-zone" id="upload-zone" for="pdf-input">
-                <div class="upload-zone-content">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                        stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                        <polyline points="14 2 14 8 20 8"></polyline>
-                        <line x1="12" y1="18" x2="12" y2="12"></line>
-                        <line x1="9" y1="15" x2="15" y2="15"></line>
-                    </svg>
-                    <span>Or click here / drop a syllabus PDF</span>
-                    <span class="upload-hint">PDF up to 10 MB</span>
-                </div>
-                <input type="file" id="pdf-input" accept=".pdf,application/pdf" style="display:none">
-            </label>
-            <div id="pdf-filename" class="pdf-filename hidden"></div>
-
-            <button id="generate-plan-btn" class="primary-btn">
-                <span class="btn-text">Generate Academic Plan</span>
-                <span class="loader hidden"></span>
-            </button>
-
-            <div id="ai-processing-steps" class="ai-processing-steps hidden">
-                <div class="ai-step" data-step="0">
-                    <span class="ai-step-dot"></span>
-                    <span>Extracting courses from syllabus...</span>
-                </div>
-                <div class="ai-step" data-step="1">
-                    <span class="ai-step-dot"></span>
-                    <span>Detecting credits & classifications...</span>
-                </div>
-                <div class="ai-step" data-step="2">
-                    <span class="ai-step-dot"></span>
-                    <span>Analyzing workload distribution...</span>
-                </div>
-                <div class="ai-step" data-step="3">
-                    <span class="ai-step-dot"></span>
-                    <span>Building semester dashboard...</span>
-                </div>
-            </div>
+    <!-- NAVBAR -->
+    <nav class="navbar" id="navbar">
+        <div class="nav-inner">
+            <a class="nav-logo" href="#">Syllabus<span>OS</span></a>
+            <ul class="nav-links">
+                <li><a href="#home" class="active">Home</a></li>
+                <li><a href="#features">Features</a></li>
+                <li><a href="app.html" class="btn btn-primary nav-cta">Get Started</a></li>
+            </ul>
         </div>
-    </main>
+    </nav>
 
-    <!-- ═══════════════════════════════════════════════════════════ -->
-    <!-- SCREEN 2: EXTRACTION REVIEW                                -->
-    <!-- ═══════════════════════════════════════════════════════════ -->
-    <main class="screen" id="screen-2">
-        <div class="review-layout">
-            <div class="panel raw-panel">
-                <div class="panel-header">
-                    <h2>Raw Syllabus Text</h2>
-                </div>
-                <div class="panel-content">
-                    <p id="raw-text-display"></p>
-                </div>
-            </div>
-
-            <div class="panel structured-panel">
-                <div class="panel-header">
-                    <h2>Structured Output</h2>
-                    <span class="success-badge" id="parse-badge">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                            stroke-width="2">
-                            <path d="M20 6L9 17l-5-5" />
-                        </svg>
-                        <span id="badge-text">AI Extraction Complete</span>
-                    </span>
+    <!-- HERO SECTION -->
+    <section class="hero section" id="home">
+        <div class="container">
+            <div class="hero-grid">
+                <div class="hero-content reveal">
+                    <div class="hero-badge">
+                        <span class="dot"></span>
+                        ✨ Powered by Advanced Groq AI
+                    </div>
+                    <h1 class="hero-title">
+                        Master your semester<br />
+                        with <span class="gradient-text">intelligent AI.</span>
+                    </h1>
+                    <p class="hero-desc">
+                        Transform messy syllabus text or PDFs into a structured academic control center. Track progress, detect high-impact tasks, and ace your exams with ease.
+                    </p>
+                    <div class="hero-actions">
+                        <a href="app.html" class="btn btn-primary">Start Planning Now</a>
+                        <a href="#features" class="btn btn-outline">See Features →</a>
+                    </div>
                 </div>
 
-                <div class="view-toggle">
-                    <button class="toggle-btn active" id="toggle-cards">Cards</button>
-                    <button class="toggle-btn" id="toggle-json">Raw JSON</button>
-                </div>
-
-                <div class="panel-content">
-                    <div id="json-preview" class="json-cards-container"></div>
-                    <pre id="raw-json-display" class="raw-json hidden"></pre>
-                </div>
-                <div class="panel-footer">
-                    <div class="footer-actions">
-                        <button id="save-syllabus-btn" class="secondary-btn">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                stroke-width="2">
-                                <path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z" />
-                                <polyline points="17 21 17 13 7 13 7 21" />
-                                <polyline points="7 3 7 8 15 8" />
-                            </svg>
-                            Save
-                        </button>
-                        <button id="generate-timeline-btn" class="primary-btn">Generate Dashboard →</button>
+                <div class="hero-visual">
+                    <div class="hero-orb"></div>
+                    <div class="glass-card hero-card-main reveal">
+                        <div class="icon-wrap">🚀</div>
+                        <h3>Academic Mastery</h3>
+                        <p>Our AI analyzes your syllabus to prioritize what actually matters for your grades.</p>
                     </div>
                 </div>
             </div>
         </div>
-    </main>
+    </section>
 
-    <!-- ═══════════════════════════════════════════════════════════ -->
-    <!-- SCREEN 3: COMMAND DASHBOARD & PROGRESS TRACKER             -->
-    <!-- ═══════════════════════════════════════════════════════════ -->
-    <main class="screen" id="screen-3">
-        <div class="command-status" id="command-status">
-            <div class="status-indicator">
-                <span class="status-dot active"></span>
-                <span>AI Engine Active</span>
+    <!-- FEATURES SECTION -->
+    <section class="features section" id="features">
+        <div class="container">
+            <div class="section-header reveal" style="text-align: center; margin-bottom: 60px;">
+                <h2 style="font-family: 'Outfit', sans-serif; font-size: 2.5rem; font-weight: 800; margin-bottom: 16px;">Everything you need to <span class="gradient-text">Succeed.</span></h2>
+                <p style="color: var(--text-muted); max-width: 600px; margin: 0 auto;">SyllabusOS provides a complete suite of tools to help you manage your academic workload effectively.</p>
             </div>
-            <div class="status-indicator">
-                <span class="status-dot active"></span>
-                <span>Syllabus Parsed</span>
-            </div>
-            <div class="status-indicator">
-                <span class="status-dot active"></span>
-                <span>Dashboard Generated</span>
-            </div>
-        </div>
-
-        <div class="tracker-nav-wrapper" id="permanent-nav"
-            style="margin: 0.5rem 0 1.5rem 0; padding: 0.5rem 1rem; justify-content: flex-start;">
-            <div class="view-toggle header-toggle">
-                <button class="toggle-btn active" id="tab-dashboard">Dashboard</button>
-                <button class="toggle-btn" id="tab-tracker">Progress Tracker</button>
-            </div>
-        </div>
-
-        <!-- Dashboard View Content -->
-        <div class="dashboard-wrapper" id="dashboard-wrapper">
-            <div class="dashboard-main">
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <div class="stat-value" id="stat-courses">--</div>
-                        <div class="stat-label">Total Subjects</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-value" id="stat-credits">--</div>
-                        <div class="stat-label">Total Credits</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-value" id="stat-theory">--</div>
-                        <div class="stat-label">Theory</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-value" id="stat-labs">--</div>
-                        <div class="stat-label">Labs</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-value" id="stat-workload">--</div>
-                        <div class="stat-label">Workload</div>
-                    </div>
+            <div class="features-grid">
+                <div class="glass-card feature-card reveal">
+                    <div class="icon-wrap" style="margin-bottom: 20px;">✨</div>
+                    <h3>AI Extraction</h3>
+                    <p>Paste text or drop a PDF. Our AI automatically extracts courses, credits, and deliverables in seconds.</p>
                 </div>
-                <div class="dashboard-actions">
-                    <button id="save-dashboard-btn" class="secondary-btn">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                            stroke-width="2">
-                            <path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z" />
-                            <polyline points="17 21 17 13 7 13 7 21" />
-                            <polyline points="7 3 7 8 15 8" />
-                        </svg>
-                        Save to History
-                    </button>
+                <div class="glass-card feature-card reveal">
+                    <div class="icon-wrap" style="margin-bottom: 20px;">🗓️</div>
+                    <h3>Smart Timelines</h3>
+                    <p>Visual chronological views of your entire semester, automatically generated from your syllabus dates.</p>
                 </div>
-
-                <div class="card-section credits-full">
-                    <h2>Credits Distribution</h2>
-                    <div class="credits-layout">
-                        <div class="chart-container"><canvas id="credits-chart"></canvas></div>
-                        <div class="credits-legend" id="credits-legend"></div>
-                    </div>
+                <div class="glass-card feature-card reveal">
+                    <div class="icon-wrap" style="margin-bottom: 20px;">📊</div>
+                    <h3>Progress Control</h3>
+                    <p>Deep-dive into subject units and track your study progress with high-precision dashboard metrics.</p>
                 </div>
-
-                <div class="two-col-row">
-                    <div class="card-section">
-                        <h2>High Impact Tasks</h2>
-                        <div class="priority-list" id="priority-list"></div>
-                    </div>
-                    <div class="card-section">
-                        <h2>Chronological Timeline</h2>
-                        <div class="timeline" id="timeline-view"></div>
-                    </div>
+                <div class="glass-card feature-card reveal">
+                    <div class="icon-wrap" style="margin-bottom: 20px;">🔍</div>
+                    <h3>Busy Week Detection</h3>
+                    <p>Predict intense workload weeks based on exam dates and deliverables before they happen.</p>
                 </div>
-
-                <div class="card-section semester-dates-card">
-                    <h2>📅 Semester Schedule</h2>
-                    <p style="font-size:0.75rem;color:var(--text-muted);margin-bottom:0.75rem">Enter your dates to
-                        generate a personalized study plan and busy week detection.</p>
-                    <div class="dates-row">
-                        <div class="date-field">
-                            <label for="date-start">Semester Start</label>
-                            <input type="date" id="date-start">
-                        </div>
-                        <div class="date-field">
-                            <label for="date-midsem">Mid-Sem Exams</label>
-                            <input type="date" id="date-midsem">
-                        </div>
-                        <div class="date-field">
-                            <label for="date-endsem">End-Term Exams</label>
-                            <input type="date" id="date-endsem">
-                        </div>
-                        <button id="generate-schedule-btn" class="primary-btn"
-                            style="align-self:flex-end;padding:0.55rem 1.25rem;font-size:0.8125rem">Generate
-                            Schedule</button>
-                    </div>
-                </div>
-
-                <div class="two-col-row">
-                    <div class="card-section">
-                        <h2>Busy Week Detection</h2>
-                        <div class="busy-weeks-list" id="busy-weeks-list"></div>
-                    </div>
-                    <div class="card-section">
-                        <h2>📅 Recommended Study Plan</h2>
-                        <div class="study-plan-list" id="study-plan-list"></div>
-                    </div>
-                </div>
-            </div>
-
-            <aside class="insights-panel">
-                <div class="insights-header">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                        stroke-linecap="round" stroke-linejoin="round">
-                        <circle cx="12" cy="12" r="10" />
-                        <line x1="12" y1="16" x2="12" y2="12" />
-                        <line x1="12" y1="8" x2="12.01" y2="8" />
-                    </svg>
-                    AI Insights
-                </div>
-                <div id="insights-content" class="insights-content"></div>
-            </aside>
-        </div>
-
-        <!-- PROGRESS TRACKER VIEW -->
-        <div class="progress-wrapper hidden" id="progress-wrapper">
-            <div class="progress-header-section">
-                <!-- Circular Progress Bar -->
-                <div class="progress-circle-container">
-                    <svg class="progress-svg" viewBox="0 0 100 100">
-                        <circle class="progress-bg" cx="50" cy="50" r="40"></circle>
-                        <circle class="progress-fill" id="overall-progress-circle" cx="50" cy="50" r="40"></circle>
-                    </svg>
-                    <div class="progress-text-center">
-                        <div class="progress-val" id="overall-progress-text">0%</div>
-                        <div class="progress-lbl">Overall Progress</div>
-                        <div class="progress-frac" id="overall-progress-fraction">0 / 0</div>
-                    </div>
-                </div>
-
-                <!-- Current Week Goal Banner -->
-                <div class="current-goal-card">
-                    <div class="goal-header">🔥 Current Week Goal</div>
-                    <div class="goal-content" id="current-goal-text">No pending units found. You're all caught up!</div>
-                </div>
-            </div>
-
-            <!-- Expandable Course Accordions Container -->
-            <div class="tracker-accordion" id="tracker-courses-container">
-                <!-- Injected via app.js -->
             </div>
         </div>
-    </main>
+    </section>
 
-    <script src="app.js"></script>
+    <!-- FOOTER -->
+    <footer style="padding: 60px 0; border-top: 1px solid var(--border); margin-top: 100px;">
+        <div class="container" style="text-align: center;">
+            <div class="logo" style="font-family: 'Outfit', sans-serif; font-size: 1.5rem; font-weight: 800; margin-bottom: 20px;">Syllabus<span>OS</span></div>
+            <p style="color: var(--text-muted); font-size: 0.875rem;">&copy; 2026 SyllabusOS. Powered by Groq AI and Advanced Agentic Coding.</p>
+        </div>
+    </footer>
+
+    <script src="src/landing.js"></script>
 </body>
-
 </html>
