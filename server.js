@@ -7,8 +7,16 @@ const path = require('path');
 const fs = require('fs');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
-const { body, validationResult } = require('express-validator');
+const { validationResult } = require('express-validator');
+const { createClient } = require('@supabase/supabase-js');
 const { parseSyllabus } = require('./aiParser');
+
+// ─── Supabase Initialization ────────────────────────────────────────
+const supabase = createClient(
+    process.env.SUPABASE_URL || '',
+    process.env.SUPABASE_ANON_KEY || ''
+);
+
 
 // Security Check: Ensure Critical Secrets Exist
 if (!process.env.GROQ_API_KEY) {
@@ -48,7 +56,9 @@ function db(file) {
 app.use(helmet({ contentSecurityPolicy: false })); // Basic Security Headers (disabled CSP for inline scripts in demo)
 app.use(cors({ origin: process.env.ALLOWED_ORIGIN || '*' })); // Restrict in production
 app.use(express.json({ limit: '1mb' })); // Reduced from 5mb to prevent DoS via massive payloads
+app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));
 app.use(express.static(path.join(__dirname, 'public')));
+
 
 // Security: Rate Limiters
 const globalLimiter = rateLimit({
@@ -64,14 +74,16 @@ app.use('/api/', globalLimiter);
 
 // Security: Auth & Validation Helpers
 const authenticate = (req, res, next) => {
-    const token = req.headers['authorization'];
-    if (!token || !token.startsWith('Bearer ')) {
+    const authHeader = req.headers['authorization'];
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
         console.warn(`[Security] Unauthorized access attempt to ${req.path}`);
         return res.status(401).json({ error: 'Unauthorized: Session token required' });
     }
-    req.userId = token.split(' ')[1]; // Extract token
+    // For now, we use the client-generated random token as the persistent userId in Supabase
+    req.userId = authHeader.split(' ')[1]; 
     next();
 };
+
 
 const validateRequest = (req, res, next) => {
     const errors = validationResult(req);
@@ -84,7 +96,14 @@ const validateRequest = (req, res, next) => {
 
 // Security: Deep JSON HTML Escaper
 const sanitizeObj = (obj) => {
-    if (typeof obj === 'string') return obj.replace(/[&<>'"]/g, tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag]));
+    if (typeof obj === 'string') {
+        // Idempotent escaping: Only escape '&' if not part of an existing entity
+        return obj.replace(/&(?!(amp|lt|gt|quot|#39);)/g, '&amp;')
+                  .replace(/</g, '&lt;')
+                  .replace(/>/g, '&gt;')
+                  .replace(/'/g, '&#39;')
+                  .replace(/"/g, '&quot;');
+    }
     if (Array.isArray(obj)) return obj.map(sanitizeObj);
     if (obj !== null && typeof obj === 'object') {
         const sanitized = {};
@@ -187,142 +206,182 @@ app.post('/api/parse-syllabus-pdf', aiLimiter, upload.single('pdf'), async (req,
     }
 });
 
-// ─── Storage APIs (Legacy/History) ───────────────────────────────────
-app.get('/api/syllabi', authenticate, (req, res) => {
-    // SECURITY FIX: Filter history by authenticated userId (IDOR Prevention)
-    const data = db(HISTORY_FILE).read().filter(s => s.userId === req.userId);
-    res.json(data.map(s => ({
-        id: s.id, name: s.name, savedAt: s.savedAt,
-        courseCount: s.result?.courses?.length || 0,
-        deliverableCount: s.result?.deliverables?.length || 0,
-        credits: s.result?.summary?.total_credits || 0
-    })));
+// ─── Storage APIs (Supabase) ─────────────────────────────────────────
+app.get('/api/syllabi', authenticate, async (req, res) => {
+    try {
+        const { data, error } = await supabase
+            .from('syllabi')
+            .select('id, name, result, created_at')
+            .eq('user_id', req.userId)
+            .order('created_at', { ascending: false });
+
+        if (error) throw error;
+
+        res.json(data.map(s => ({
+            id: s.id,
+            name: s.name,
+            savedAt: s.created_at,
+            courseCount: s.result?.courses?.length || 0,
+            deliverableCount: s.result?.deliverables?.length || 0,
+            credits: s.result?.summary?.total_credits || 0
+        })));
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
 });
 
-app.get('/api/syllabi/:id', authenticate, (req, res) => {
-    // SECURITY FIX: Enforce ownership check (IDOR Prevention)
-    const item = db(HISTORY_FILE).read().find(s => s.id === req.params.id);
-    if (!item) return res.status(404).json({ error: 'Not found' });
-    if (item.userId !== req.userId) return res.status(403).json({ error: 'Forbidden: You do not own this record' });
-    res.json(item);
+app.get('/api/syllabi/:id', authenticate, async (req, res) => {
+    try {
+        const { data, error } = await supabase
+            .from('syllabi')
+            .select('*')
+            .eq('id', req.params.id)
+            .eq('user_id', req.userId)
+            .single();
+
+        if (error) return res.status(404).json({ error: 'Not found' });
+        res.json(data);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
 });
 
 app.post('/api/syllabi', authenticate, [
     body('name').optional().trim().escape().isLength({ max: 100 }),
     body('rawText').optional().trim(),
-    body('tempId').optional().trim().escape(),
+    body('result').notEmpty(),
     validateRequest
-], (req, res) => {
-    const { name, rawText, result: rawResult, tempId } = req.body;
-    if (!rawResult) return res.status(400).json({ error: 'result required' });
-    
-    const result = sanitizeObj(rawResult); // Prevent XSS via saved JSON payload
+], async (req, res) => {
+    try {
+        const { name, rawText, result } = req.body;
+        const sanitizedResult = sanitizeObj(result);
 
-    const storage = db(HISTORY_FILE);
-    const data = storage.read();
-    const newId = Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
-    const entry = { id: newId, name: name || 'Untitled', rawText: rawText || '', result, savedAt: new Date().toISOString(), userId: req.userId };
-    data.unshift(entry);
-    storage.write(data);
+        const { data, error } = await supabase
+            .from('syllabi')
+            .insert([{
+                user_id: req.userId,
+                name: name || 'Untitled',
+                raw_text: rawText || '',
+                result: sanitizedResult
+            }])
+            .select()
+            .single();
 
-    // Migration logic for detailed storage and progress
-    if (tempId && tempId !== newId) {
-        // Migrate detailed syllabus state
-        const sStorage = db(DASHBOARD_FILE);
-        const sDb = sStorage.read();
-        if (sDb[tempId]) {
-            sDb[newId] = { ...sDb[tempId], syllabusId: newId, updatedAt: new Date().toISOString() };
-            sStorage.write(sDb);
-            console.log(`[Server] Migrated syllabus state from ${tempId} to ${newId}`);
-        }
-
-        // Migrate progress data
-        const pStorage = db(PROGRESS_FILE);
-        const pDb = pStorage.read();
-        if (pDb[tempId]) {
-            pDb[newId] = { ...pDb[tempId] };
-            // Update topic keys if they contain the ID
-            const newProgress = {};
-            Object.keys(pDb[newId]).forEach(oldTopicKey => {
-                const newTopicKey = oldTopicKey.replace(tempId, newId);
-                newProgress[newTopicKey] = pDb[newId][oldTopicKey];
-            });
-            pDb[newId] = newProgress;
-            pStorage.write(pDb);
-            console.log(`[Server] Migrated progress data from ${tempId} to ${newId}`);
-        }
+        if (error) throw error;
+        res.json({ success: true, id: data.id });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
     }
-
-    res.json({ success: true, id: newId });
 });
 
-app.delete('/api/syllabi/:id', authenticate, (req, res) => {
-    const storage = db(HISTORY_FILE);
-    let data = storage.read();
-    // SECURITY FIX: Only allow deletion if the user owns the record (IDOR Prevention)
-    const index = data.findIndex(s => s.id === req.params.id);
-    if (index === -1) return res.status(404).json({ error: 'Not found' });
-    if (data[index].userId !== req.userId) return res.status(403).json({ error: 'Forbidden: You do not own this record' });
-    data.splice(index, 1);
-    storage.write(data);
-    res.json({ success: true });
+app.delete('/api/syllabi/:id', authenticate, async (req, res) => {
+    try {
+        const { error } = await supabase
+            .from('syllabi')
+            .delete()
+            .eq('id', req.params.id)
+            .eq('user_id', req.userId);
+
+        if (error) throw error;
+        res.json({ success: true });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
 });
 
-// ─── NEW: Per-Syllabus Persistence APIs ──────────────────────────────
+// ─── Syllabus State (Dashboard Data) ─────────────────────────────────
 app.post('/api/syllabus', authenticate, [
-    body('syllabusId').trim().notEmpty().escape(),
+    body('syllabusId').trim().notEmpty(),
     validateRequest
-], (req, res) => {
-    const { syllabusId } = req.body;
-    const storage = db(DASHBOARD_FILE);
-    const data = storage.read();
-    
-    // Sanitize and Save payload to preserve HTML sections safely
-    data[syllabusId] = {
-        ...sanitizeObj(req.body),
-        updatedAt: new Date().toISOString(),
-        userId: req.userId // Track ownership internally
-    };
-    storage.write(data);
-    res.json({ success: true });
-});
+], async (req, res) => {
+    try {
+        const { syllabusId } = req.body;
+        const sanitizedData = sanitizeObj(req.body);
 
-app.get('/api/syllabus/:id', authenticate, (req, res) => {
-    const data = db(DASHBOARD_FILE).read();
-    const item = data[req.params.id];
-    // SECURITY FIX: Verify ownership
-    if (!item) return res.json(null);
-    if (item.userId !== req.userId) return res.status(403).json({ error: 'Forbidden: You do not own this record' });
-    res.json(item);
-});
+        const { error } = await supabase
+            .from('syllabus_states')
+            .upsert({
+                syllabus_id: syllabusId,
+                user_id: req.userId,
+                data: sanitizedData,
+                updated_at: new Date().toISOString()
+            }, { onConflict: 'syllabus_id, user_id' }); // Note: Ensure unique constraint in SQL if needed, or just let it handle it
 
-app.post('/api/progress', authenticate, [
-    body('syllabusId').trim().notEmpty().escape(),
-    body('topicId').trim().notEmpty().escape(),
-    body('completed').isBoolean(),
-    body('notes').optional().trim().escape(),
-    body('revision').isBoolean(),
-    validateRequest
-], (req, res) => {
-    const { syllabusId, topicId, completed, notes, revision } = req.body;
-    const storage = db(PROGRESS_FILE);
-    const data = storage.read();
-    
-    if (!data[syllabusId]) data[syllabusId] = {};
-    data[syllabusId][topicId] = { completed, notes, revision, updatedAt: new Date().toISOString(), userId: req.userId };
-
-    storage.write(data);
-    res.json({ success: true });
-});
-
-app.get('/api/progress/:id', authenticate, (req, res) => {
-    const progress = db(PROGRESS_FILE).read()[req.params.id] || {};
-    // SECURITY FIX: Only return topics modified by the current user
-    const userProgress = {};
-    for (const [topic, data] of Object.entries(progress)) {
-        if (data.userId === req.userId) userProgress[topic] = data;
+        if (error) throw error;
+        res.json({ success: true });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
     }
-    res.json(userProgress);
+});
+
+app.get('/api/syllabus/:id', authenticate, async (req, res) => {
+    try {
+        const { data, error } = await supabase
+            .from('syllabus_states')
+            .select('*')
+            .eq('syllabus_id', req.params.id)
+            .eq('user_id', req.userId)
+            .single();
+
+        if (error || !data) return res.json(null);
+        res.json(data.data);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// ─── Progress Tracking ───────────────────────────────────────────────
+app.post('/api/progress', authenticate, [
+    body('syllabusId').trim().notEmpty(),
+    body('topicId').trim().notEmpty(),
+    body('completed').isBoolean(),
+    validateRequest
+], async (req, res) => {
+    try {
+        const { syllabusId, topicId, completed, notes, revision } = req.body;
+        
+        const { error } = await supabase
+            .from('progress')
+            .upsert({
+                syllabus_id: syllabusId,
+                user_id: req.userId,
+                topic_id: topicId,
+                completed,
+                notes,
+                revision,
+                updated_at: new Date().toISOString()
+            }, { onConflict: 'syllabus_id, topic_id' });
+
+        if (error) throw error;
+        res.json({ success: true });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.get('/api/progress/:id', authenticate, async (req, res) => {
+    try {
+        const { data, error } = await supabase
+            .from('progress')
+            .select('*')
+            .eq('syllabus_id', req.params.id)
+            .eq('user_id', req.userId);
+
+        if (error) throw error;
+        
+        const formatted = {};
+        data.forEach(item => {
+            formatted[item.topic_id] = {
+                completed: item.completed,
+                notes: item.notes,
+                revision: item.revision,
+                updatedAt: item.updated_at
+            };
+        });
+        res.json(formatted);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
 });
 
 if (require.main === module) {

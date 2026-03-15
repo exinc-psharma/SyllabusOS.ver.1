@@ -57,7 +57,7 @@
           ]
         },
         {
-          "course_name": "Microprocessors &amp;amp; Microcontrollers",
+          "course_name": "Microprocessors & Microcontrollers",
           "course_code": "ECC-503",
           "credits": "3",
           "type": "theory",
@@ -102,7 +102,7 @@
           ]
         },
         {
-          "course_name": "Data Communication &amp;amp; Networks",
+          "course_name": "Data Communication & Networks",
           "course_code": "ECC-505",
           "credits": "4",
           "type": "theory",
@@ -124,7 +124,7 @@
               "unit": "Unit II",
               "topics": [
                 "Data Link Layer Protocols",
-                "Error Detection &amp;amp; Correction",
+                "Error Detection & Correction",
                 "Flow Control"
               ]
             },
@@ -160,7 +160,7 @@
             {
               "unit": "Unit I",
               "topics": [
-                "Open &amp;amp; Closed Loop Systems",
+                "Open & Closed Loop Systems",
                 "Transfer Functions",
                 "Block Diagram Reduction"
               ]
@@ -206,14 +206,14 @@
               "unit": "Unit I",
               "topics": [
                 "Vector Calculus Review",
-                "Coulomb&amp;#39;s Law",
+                "Coulomb&#39;s Law",
                 "Electric Field Intensity"
               ]
             },
             {
               "unit": "Unit II",
               "topics": [
-                "Laplace &amp;amp; Poisson Equations",
+                "Laplace & Poisson Equations",
                 "Capacitance",
                 "Biot-Savart Law"
               ]
@@ -221,7 +221,7 @@
             {
               "unit": "Unit III",
               "topics": [
-                "Maxwell&amp;#39;s Equations",
+                "Maxwell&#39;s Equations",
                 "Electromagnetic Wave Propagation",
                 "Poynting Vector"
               ]

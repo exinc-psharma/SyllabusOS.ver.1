@@ -1,6 +1,12 @@
 // ─── DOM SECURITY (XSS PREVENTION) ───────────────────────────────────
 export const sanitizeObjClient = (obj) => {
-    if (typeof obj === 'string') return obj.replace(/[&<>'"]/g, tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag]));
+    if (typeof obj === 'string') {
+        return obj.replace(/&(?!(amp|lt|gt|quot|#39);)/g, '&amp;')
+                  .replace(/</g, '&lt;')
+                  .replace(/>/g, '&gt;')
+                  .replace(/'/g, '&#39;')
+                  .replace(/"/g, '&quot;');
+    }
     if (Array.isArray(obj)) return obj.map(sanitizeObjClient);
     if (obj !== null && typeof obj === 'object') {
         const sanitized = {};
@@ -13,7 +19,8 @@ export const sanitizeObjClient = (obj) => {
 // ─── UTILS ───────────────────────────────────────────────────────────
 export const $ = id => document.getElementById(id);
 
-export const COLORS = ['#6366F1', '#EF4444', '#8B5CF6', '#F59E0B', '#22C55E', '#EC4899', '#3B82F6', '#14B8A6', '#F43F5E', '#06B6D4', '#84CC16', '#D946EF', '#EAB308', '#0EA5E9', '#10B981', '#F97316'];
+export const COLORS = ['#6366F1', '#A855F7', '#F472B6', '#3B82F6', '#10B981', '#F59E0B', '#F43F5E', '#8B5CF6', '#14B8A6', '#84CC16', '#0EA5E9', '#D946EF'];
+
 
 export function showToast(msg, type = 'info') {
     const toastContainer = $('toast-container');

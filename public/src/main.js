@@ -38,20 +38,10 @@ const aiProcessingSteps = $('ai-processing-steps');
 
 // ─── NAV ─────────────────────────────────────────────────────────────
 function goHome() {
-    switchScreen(1);
-    setTimeout(() => {
-        if(syllabusInput) { syllabusInput.value = ''; syllabusInput.focus(); }
-        state.uploadedPdfFile = null;
-        if(pdfFilename) pdfFilename.classList.add('hidden');
-        if(pdfInput) pdfInput.value = '';
-        state.currentResponse = null;
-        state.currentRawText = '';
-        state.currentStudyPlanData = null;
-        if($('date-start')) $('date-start').value = '';
-        if($('date-midsem')) $('date-midsem').value = '';
-        if($('date-endsem')) $('date-endsem').value = '';
-    }, 400);
+    window.location.href = '/';
 }
+
+
 if(logoHome) logoHome.addEventListener('click', goHome);
 if(topNavBtn) topNavBtn.addEventListener('click', goHome);
 
@@ -406,3 +396,13 @@ if($('tab-tracker')) {
         }
     });
 }
+// ─── PREMIUM INTERACTIVE EFFECTS ───────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+    const glow = $('cursor-glow');
+    if (glow) {
+        document.addEventListener('mousemove', (e) => {
+            glow.style.left = e.clientX + 'px';
+            glow.style.top = e.clientY + 'px';
+        });
+    }
+});

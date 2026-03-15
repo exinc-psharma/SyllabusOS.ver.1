@@ -46,10 +46,10 @@ export function populateDashboard(resp) {
     const pList = $('priority-list');
     if (pList) {
         pList.innerHTML = scored.map(c => `
-            <div class="priority-item" data-type="${c.category || c.type}">
+            <div class="priority-item" data-type="${(c.category || c.type || 'other').toLowerCase()}">
                 <div class="priority-title">${c.course_name || c.name || c.type}</div>
                 <div class="priority-meta"><span>${c.date || (c.credits ? c.credits + ' cr' : '')}</span><span class="weight-badge">${c.weight || ''}</span></div>
-                <div class="priority-score">Impact Score: ${c.score}</div>
+                <div class="priority-score">Impact Score: <span>${c.score}</span></div>
             </div>
         `).join('');
     }
@@ -59,7 +59,7 @@ export function populateDashboard(resp) {
     if (tView) {
         if (mode === 'deadline' || mode === 'mixed') {
             const items = deliverables.length > 0 ? deliverables : courses;
-            tView.innerHTML = ordered.map((c, i) => `
+            tView.innerHTML = `<div class="timeline-body">${ordered.map((c, i) => `
                 <div class="timeline-event timeline-event-animated" style="animation-delay:${i * 0.06}s">
                     <div class="event-dot ${c.category || c.type}"></div>
                     <div class="event-content">
@@ -67,10 +67,11 @@ export function populateDashboard(resp) {
                         <div class="event-title">${c.name || c.course_name || c.type}</div>
                     </div>
                 </div>
-            `).join('');
+            `).join('')}</div>`;
+
         } else {
             const ordered = [...courses].sort((a, b) => (parseInt(b.credits) || 0) - (parseInt(a.credits) || 0));
-            tView.innerHTML = ordered.map((c, i) => `
+            tView.innerHTML = `<div class="timeline-body">${ordered.map((c, i) => `
                 <div class="timeline-event timeline-event-animated" style="animation-delay:${i * 0.06}s">
                     <div class="event-dot ${c.type || c.category}"></div>
                     <div class="event-content">
@@ -78,7 +79,8 @@ export function populateDashboard(resp) {
                         <div class="event-title">${c.course_name}</div>
                     </div>
                 </div>
-            `).join('');
+            `).join('')}</div>`;
+
         }
     }
 
@@ -179,8 +181,17 @@ export function renderInsights(courses, deliverables, mode) {
 
     if (mode === 'mixed') insights.push({ icon: '🔀', title: 'Mixed Format', value: `${courses.length} courses + ${deliverables.length} tasks`, desc: 'Both curriculum and deadline data detected.', cls: 'success' });
 
-    el.innerHTML = insights.map(i => `<div class="insight-card ${i.cls}"><div class="insight-icon">${i.icon}</div><div class="insight-title">${i.title}</div><div class="insight-value">${i.value}</div><div class="insight-desc">${i.desc}</div></div>`).join('');
+    el.innerHTML = insights.map(i => `
+        <div class="insight-card ${i.cls}">
+            <div class="insight-header">
+                <div class="insight-icon">${i.icon}</div>
+                <div class="insight-title">${i.title}</div>
+            </div>
+            <div class="insight-value">${i.value}</div>
+            <div class="insight-desc">${i.desc}</div>
+        </div>`).join('');
 }
+
 
 export function renderBusyWeeksCustom(startD, midD, endD) {
     const el = $('busy-weeks-list');

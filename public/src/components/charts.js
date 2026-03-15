@@ -19,10 +19,11 @@ export function renderCreditsChart(courses) {
 
     state.creditsChart = new Chart(ctx, {
         type: 'doughnut',
-        data: { labels: keys, datasets: [{ data: values, backgroundColor: COLORS, borderWidth: 2, borderColor: '#0F172A', hoverOffset: 4 }] },
+        data: { labels: keys, datasets: [{ data: values, backgroundColor: COLORS, borderWidth: 2, borderColor: '#020617', hoverOffset: 4 }] },
         options: { responsive: true, maintainAspectRatio: true, cutout: '60%', plugins: { legend: { display: false } } }
     });
 }
+
 
 export function renderWeightChart(deliverables) {
     const ctx = $('credits-chart').getContext('2d');
@@ -30,10 +31,11 @@ export function renderWeightChart(deliverables) {
     if (state.creditsChart) state.creditsChart.destroy();
     state.creditsChart = new Chart(ctx, {
         type: 'doughnut',
-        data: { labels: Object.keys(map), datasets: [{ data: Object.values(map), backgroundColor: COLORS, borderWidth: 2, borderColor: '#fff', hoverOffset: 4 }] },
-        options: { responsive: true, maintainAspectRatio: true, cutout: '55%', plugins: { legend: { position: 'bottom', labels: { usePointStyle: true, padding: 10, font: { family: 'Inter', size: 10, weight: '500' }, color: '#64748B' } } } }
+        data: { labels: Object.keys(map), datasets: [{ data: Object.values(map), backgroundColor: COLORS, borderWidth: 2, borderColor: '#020617', hoverOffset: 4 }] },
+        options: { responsive: true, maintainAspectRatio: true, cutout: '55%', plugins: { legend: { position: 'bottom', labels: { usePointStyle: true, padding: 10, font: { family: 'Inter', size: 10, weight: '500' }, color: '#94A3B8' } } } }
     });
 }
+
 
 export function renderCategoryChart(deliverables) {
     const ctx = $('units-chart').getContext('2d');
