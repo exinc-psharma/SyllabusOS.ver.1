@@ -1,7 +1,7 @@
 import { initAuth } from './auth.js';
 import { $, showToast, switchScreen, sanitizeObjClient } from './utils.js';
 import { state } from './state.js';
-import { parseSyllabusText, parseSyllabusPdf, saveSyllabus, loadHistoryList, loadSyllabusById, deleteSyllabus } from './api.js';
+import { parseSyllabusText, parseSyllabusPdf, saveSyllabus, loadHistoryList, loadSyllabusById, deleteSyllabus, saveFrozenSyllabusData } from './api.js';
 import { populateDashboard } from './components/dashboard.js';
 import { renderProgressTracker } from './components/tracker.js';
 
