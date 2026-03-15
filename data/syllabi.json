@@ -1,5 +1,390 @@
 [
   {
+    "id": "mmgfp54rp1qm",
+    "name": "D1",
+    "rawText": "ECE Semester V — USICT, GGSIPU (2024-25)\n\nECC-501 Digital Signal Processing | 4 Credits | Theory | Core\nInternal: 40 | End Term: 60\nUnit I: Discrete-Time Signals, Z-Transform, Region of Convergence, Inverse Z-Transform\nUnit II: DFT Properties, FFT Algorithms (Radix-2 DIT, DIF), Circular Convolution\nUnit III: IIR Filter Design, Butterworth Filters, Chebyshev Filters, Bilinear Transformation\nUnit IV: FIR Filter Design, Window Techniques (Hamming, Hanning, Kaiser), Linear Phase Filters\n\nECC-503 Microprocessors & Microcontrollers | 3 Credits | Theory | Core\nInternal: 40 | End Term: 60\nUnit I: 8086 Architecture, Pin Configuration, Addressing Modes, Instruction Set\nUnit II: Assembly Language Programming, Interrupts, DMA, 8259 PIC, 8257 DMA Controller\nUnit III: 8051 Microcontroller Architecture, I/O Ports, Timers/Counters, Serial Communication\nUnit IV: Interfacing ADC/DAC, LCD, Stepper Motor, Keyboard, Memory Interfacing\n\nECC-505 Data Communication & Networks | 4 Credits | Theory | Core\nInternal: 40 | End Term: 60\nUnit I: Data Communication Fundamentals, Transmission Media, Multiplexing (TDM, FDM, WDM)\nUnit II: Data Link Layer Protocols, Error Detection & Correction, Flow Control, HDLC\nUnit III: Network Layer, IP Addressing, Subnetting, Routing Algorithms (OSPF, BGP, RIP)\nUnit IV: Transport Layer, TCP/UDP, Congestion Control, Application Layer Protocols (HTTP, DNS, FTP)\n\nECC-507 Control Systems | 3 Credits | Theory | Core\nInternal: 40 | End Term: 60\nUnit I: Open & Closed Loop Systems, Transfer Functions, Block Diagram Reduction, Signal Flow Graphs\nUnit II: Time Domain Analysis, Transient Response, Steady State Error, Routh-Hurwitz Stability\nUnit III: Root Locus Technique, Frequency Response, Bode Plot, Nyquist Stability Criterion\nUnit IV: State Space Analysis, Controllability, Observability, PID Controller Design\n\nECC-509 Electromagnetic Field Theory | 3 Credits | Theory | Core\nInternal: 40 | End Term: 60\nUnit I: Vector Calculus Review, Coulomb's Law, Electric Field Intensity, Gauss's Law\nUnit II: Laplace & Poisson Equations, Capacitance, Biot-Savart Law, Ampere's Law\nUnit III: Maxwell's Equations, Electromagnetic Wave Propagation, Poynting Vector\nUnit IV: Transmission Lines, Smith Chart, Impedance Matching, Standing Wave Ratio\n\nECC-511 VLSI Design | 3 Credits | Theory | Elective\nInternal: 40 | End Term: 60\nUnit I: MOS Transistor Theory, CMOS Inverter, Noise Margins, Power Dissipation\nUnit II: Combinational Logic Design, CMOS Logic Gates, Pass Transistor Logic, Dynamic Logic\nUnit III: Sequential Logic, Flip-Flops, Memory Design (SRAM, DRAM), Clock Distribution\nUnit IV: VLSI Testing, DFT Techniques, FPGA Architecture, HDL-based Design Flow\n\nECC-551 DSP Lab | 1 Credit | Lab\nInternal: 40 | End Term: 60\n\nECC-553 Microprocessors Lab | 1 Credit | Lab\nInternal: 40 | End Term: 60\n\nECC-555 Data Communication Lab | 1 Credit | Lab\nInternal: 40 | End Term: 60\n\nECC-557 Control Systems Lab | 1 Credit | Lab\nInternal: 40 | End Term: 60\n\nECC-559 VLSI Design Lab | 1 Credit | Lab\nInternal: 40 | End Term: 60",
+    "result": {
+      "summary": {
+        "total_courses": 11,
+        "total_credits": 25,
+        "total_theory": 6,
+        "total_labs": 5
+      },
+      "courses": [
+        {
+          "course_name": "Digital Signal Processing",
+          "course_code": "ECC-501",
+          "credits": "4",
+          "type": "theory",
+          "category": "core",
+          "semester": "V",
+          "internal_marks": "40",
+          "end_term_marks": "60",
+          "confidence": 1,
+          "units": [
+            {
+              "unit": "Unit I",
+              "topics": [
+                "Discrete-Time Signals",
+                "Z-Transform",
+                "Region of Convergence"
+              ]
+            },
+            {
+              "unit": "Unit II",
+              "topics": [
+                "DFT Properties",
+                "FFT Algorithms",
+                "Circular Convolution"
+              ]
+            },
+            {
+              "unit": "Unit III",
+              "topics": [
+                "IIR Filter Design",
+                "Butterworth Filters",
+                "Chebyshev Filters"
+              ]
+            },
+            {
+              "unit": "Unit IV",
+              "topics": [
+                "FIR Filter Design",
+                "Window Techniques",
+                "Linear Phase Filters"
+              ]
+            }
+          ]
+        },
+        {
+          "course_name": "Microprocessors &amp;amp; Microcontrollers",
+          "course_code": "ECC-503",
+          "credits": "3",
+          "type": "theory",
+          "category": "core",
+          "semester": "V",
+          "internal_marks": "40",
+          "end_term_marks": "60",
+          "confidence": 1,
+          "units": [
+            {
+              "unit": "Unit I",
+              "topics": [
+                "8086 Architecture",
+                "Pin Configuration",
+                "Addressing Modes"
+              ]
+            },
+            {
+              "unit": "Unit II",
+              "topics": [
+                "Assembly Language Programming",
+                "Interrupts",
+                "DMA"
+              ]
+            },
+            {
+              "unit": "Unit III",
+              "topics": [
+                "8051 Microcontroller Architecture",
+                "I/O Ports",
+                "Timers/Counters"
+              ]
+            },
+            {
+              "unit": "Unit IV",
+              "topics": [
+                "Interfacing ADC/DAC",
+                "LCD",
+                "Stepper Motor"
+              ]
+            }
+          ]
+        },
+        {
+          "course_name": "Data Communication &amp;amp; Networks",
+          "course_code": "ECC-505",
+          "credits": "4",
+          "type": "theory",
+          "category": "core",
+          "semester": "V",
+          "internal_marks": "40",
+          "end_term_marks": "60",
+          "confidence": 1,
+          "units": [
+            {
+              "unit": "Unit I",
+              "topics": [
+                "Data Communication Fundamentals",
+                "Transmission Media",
+                "Multiplexing"
+              ]
+            },
+            {
+              "unit": "Unit II",
+              "topics": [
+                "Data Link Layer Protocols",
+                "Error Detection &amp;amp; Correction",
+                "Flow Control"
+              ]
+            },
+            {
+              "unit": "Unit III",
+              "topics": [
+                "Network Layer",
+                "IP Addressing",
+                "Subnetting"
+              ]
+            },
+            {
+              "unit": "Unit IV",
+              "topics": [
+                "Transport Layer",
+                "TCP/UDP",
+                "Congestion Control"
+              ]
+            }
+          ]
+        },
+        {
+          "course_name": "Control Systems",
+          "course_code": "ECC-507",
+          "credits": "3",
+          "type": "theory",
+          "category": "core",
+          "semester": "V",
+          "internal_marks": "40",
+          "end_term_marks": "60",
+          "confidence": 1,
+          "units": [
+            {
+              "unit": "Unit I",
+              "topics": [
+                "Open &amp;amp; Closed Loop Systems",
+                "Transfer Functions",
+                "Block Diagram Reduction"
+              ]
+            },
+            {
+              "unit": "Unit II",
+              "topics": [
+                "Time Domain Analysis",
+                "Transient Response",
+                "Steady State Error"
+              ]
+            },
+            {
+              "unit": "Unit III",
+              "topics": [
+                "Root Locus Technique",
+                "Frequency Response",
+                "Bode Plot"
+              ]
+            },
+            {
+              "unit": "Unit IV",
+              "topics": [
+                "State Space Analysis",
+                "Controllability",
+                "Observability"
+              ]
+            }
+          ]
+        },
+        {
+          "course_name": "Electromagnetic Field Theory",
+          "course_code": "ECC-509",
+          "credits": "3",
+          "type": "theory",
+          "category": "core",
+          "semester": "V",
+          "internal_marks": "40",
+          "end_term_marks": "60",
+          "confidence": 1,
+          "units": [
+            {
+              "unit": "Unit I",
+              "topics": [
+                "Vector Calculus Review",
+                "Coulomb&amp;#39;s Law",
+                "Electric Field Intensity"
+              ]
+            },
+            {
+              "unit": "Unit II",
+              "topics": [
+                "Laplace &amp;amp; Poisson Equations",
+                "Capacitance",
+                "Biot-Savart Law"
+              ]
+            },
+            {
+              "unit": "Unit III",
+              "topics": [
+                "Maxwell&amp;#39;s Equations",
+                "Electromagnetic Wave Propagation",
+                "Poynting Vector"
+              ]
+            },
+            {
+              "unit": "Unit IV",
+              "topics": [
+                "Transmission Lines",
+                "Smith Chart",
+                "Impedance Matching"
+              ]
+            }
+          ]
+        },
+        {
+          "course_name": "VLSI Design",
+          "course_code": "ECC-511",
+          "credits": "3",
+          "type": "theory",
+          "category": "elective",
+          "semester": "V",
+          "internal_marks": "40",
+          "end_term_marks": "60",
+          "confidence": 1,
+          "units": [
+            {
+              "unit": "Unit I",
+              "topics": [
+                "MOS Transistor Theory",
+                "CMOS Inverter",
+                "Noise Margins"
+              ]
+            },
+            {
+              "unit": "Unit II",
+              "topics": [
+                "Combinational Logic Design",
+                "CMOS Logic Gates",
+                "Pass Transistor Logic"
+              ]
+            },
+            {
+              "unit": "Unit III",
+              "topics": [
+                "Sequential Logic",
+                "Flip-Flops",
+                "Memory Design"
+              ]
+            },
+            {
+              "unit": "Unit IV",
+              "topics": [
+                "VLSI Testing",
+                "DFT Techniques",
+                "FPGA Architecture"
+              ]
+            }
+          ]
+        },
+        {
+          "course_name": "DSP Lab",
+          "course_code": "ECC-551",
+          "credits": "1",
+          "type": "lab",
+          "category": "lab",
+          "semester": "V",
+          "internal_marks": "40",
+          "end_term_marks": "60",
+          "confidence": 1,
+          "units": [
+            {
+              "unit": "Lab Experiments",
+              "topics": [
+                "DSP Experiments"
+              ]
+            }
+          ]
+        },
+        {
+          "course_name": "Microprocessors Lab",
+          "course_code": "ECC-553",
+          "credits": "1",
+          "type": "lab",
+          "category": "lab",
+          "semester": "V",
+          "internal_marks": "40",
+          "end_term_marks": "60",
+          "confidence": 1,
+          "units": [
+            {
+              "unit": "Lab Experiments",
+              "topics": [
+                "Microprocessors Experiments"
+              ]
+            }
+          ]
+        },
+        {
+          "course_name": "Data Communication Lab",
+          "course_code": "ECC-555",
+          "credits": "1",
+          "type": "lab",
+          "category": "lab",
+          "semester": "V",
+          "internal_marks": "40",
+          "end_term_marks": "60",
+          "confidence": 1,
+          "units": [
+            {
+              "unit": "Lab Experiments",
+              "topics": [
+                "Data Communication Experiments"
+              ]
+            }
+          ]
+        },
+        {
+          "course_name": "Control Systems Lab",
+          "course_code": "ECC-557",
+          "credits": "1",
+          "type": "lab",
+          "category": "lab",
+          "semester": "V",
+          "internal_marks": "40",
+          "end_term_marks": "60",
+          "confidence": 1,
+          "units": [
+            {
+              "unit": "Lab Experiments",
+              "topics": [
+                "Control Systems Experiments"
+              ]
+            }
+          ]
+        },
+        {
+          "course_name": "VLSI Design Lab",
+          "course_code": "ECC-559",
+          "credits": "1",
+          "type": "lab",
+          "category": "lab",
+          "semester": "V",
+          "internal_marks": "40",
+          "end_term_marks": "60",
+          "confidence": 1,
+          "units": [
+            {
+              "unit": "Lab Experiments",
+              "topics": [
+                "VLSI Design Experiments"
+              ]
+            }
+          ]
+        }
+      ],
+      "deliverables": [],
+      "source": "ai",
+      "id": "temp_bdaed3ihs"
+    },
+    "savedAt": "2026-03-07T14:44:07.613Z",
+    "userId": "sess_fhb7qt8ufmmgfe5z9"
+  },
+  {
     "id": "mmf6yjsjcip2",
     "name": "D3",
     "rawText": "ECE Semester V — USICT, GGSIPU (2024-25)\n\nECC-501 Digital Signal Processing | 4 Credits | Theory | Core\nInternal: 40 | End Term: 60\nUnit I: Discrete-Time Signals, Z-Transform, Region of Convergence, Inverse Z-Transform\nUnit II: DFT Properties, FFT Algorithms (Radix-2 DIT, DIF), Circular Convolution\nUnit III: IIR Filter Design, Butterworth Filters, Chebyshev Filters, Bilinear Transformation\nUnit IV: FIR Filter Design, Window Techniques (Hamming, Hanning, Kaiser), Linear Phase Filters\n\nECC-503 Microprocessors & Microcontrollers | 3 Credits | Theory | Core\nInternal: 40 | End Term: 60\nUnit I: 8086 Architecture, Pin Configuration, Addressing Modes, Instruction Set\nUnit II: Assembly Language Programming, Interrupts, DMA, 8259 PIC, 8257 DMA Controller\nUnit III: 8051 Microcontroller Architecture, I/O Ports, Timers/Counters, Serial Communication\nUnit IV: Interfacing ADC/DAC, LCD, Stepper Motor, Keyboard, Memory Interfacing\n\nECC-505 Data Communication & Networks | 4 Credits | Theory | Core\nInternal: 40 | End Term: 60\nUnit I: Data Communication Fundamentals, Transmission Media, Multiplexing (TDM, FDM, WDM)\nUnit II: Data Link Layer Protocols, Error Detection & Correction, Flow Control, HDLC\nUnit III: Network Layer, IP Addressing, Subnetting, Routing Algorithms (OSPF, BGP, RIP)\nUnit IV: Transport Layer, TCP/UDP, Congestion Control, Application Layer Protocols (HTTP, DNS, FTP)\n\nECC-507 Control Systems | 3 Credits | Theory | Core\nInternal: 40 | End Term: 60\nUnit I: Open & Closed Loop Systems, Transfer Functions, Block Diagram Reduction, Signal Flow Graphs\nUnit II: Time Domain Analysis, Transient Response, Steady State Error, Routh-Hurwitz Stability\nUnit III: Root Locus Technique, Frequency Response, Bode Plot, Nyquist Stability Criterion\nUnit IV: State Space Analysis, Controllability, Observability, PID Controller Design\n\nECC-509 Electromagnetic Field Theory | 3 Credits | Theory | Core\nInternal: 40 | End Term: 60\nUnit I: Vector Calculus Review, Coulomb's Law, Electric Field Intensity, Gauss's Law\nUnit II: Laplace & Poisson Equations, Capacitance, Biot-Savart Law, Ampere's Law\nUnit III: Maxwell's Equations, Electromagnetic Wave Propagation, Poynting Vector\nUnit IV: Transmission Lines, Smith Chart, Impedance Matching, Standing Wave Ratio\n\nECC-511 VLSI Design | 3 Credits | Theory | Elective\nInternal: 40 | End Term: 60\nUnit I: MOS Transistor Theory, CMOS Inverter, Noise Margins, Power Dissipation\nUnit II: Combinational Logic Design, CMOS Logic Gates, Pass Transistor Logic, Dynamic Logic\nUnit III: Sequential Logic, Flip-Flops, Memory Design (SRAM, DRAM), Clock Distribution\nUnit IV: VLSI Testing, DFT Techniques, FPGA Architecture, HDL-based Design Flow\n\nECC-551 DSP Lab | 1 Credit | Lab\nInternal: 40 | End Term: 60\n\nECC-553 Microprocessors Lab | 1 Credit | Lab\nInternal: 40 | End Term: 60\n\nECC-555 Data Communication Lab | 1 Credit | Lab\nInternal: 40 | End Term: 60\n\nECC-557 Control Systems Lab | 1 Credit | Lab\nInternal: 40 | End Term: 60\n\nECC-559 VLSI Design Lab | 1 Credit | Lab\nInternal: 40 | End Term: 60",

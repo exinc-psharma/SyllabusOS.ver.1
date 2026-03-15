@@ -20,20 +20,29 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 app.set('trust proxy', 1); // For rate limiting behind Vercel/proxies
 
-// ─── Storage ─────────────────────────────────────────────────────────
+// ─── Storage Utility ────────────────────────────────────────────────
 const isVercel = !!process.env.VERCEL;
 const DATA_DIR = isVercel ? '/tmp' : path.join(__dirname, 'data');
-const STORAGE_FILE = path.join(DATA_DIR, 'syllabi.json');
+const HISTORY_FILE = path.join(DATA_DIR, 'syllabi.json');
+const DASHBOARD_FILE = path.join(DATA_DIR, 'syllabus_data.json');
+const PROGRESS_FILE = path.join(DATA_DIR, 'progress_data.json');
 
-if (!fs.existsSync(DATA_DIR)) {
-    try { fs.mkdirSync(DATA_DIR, { recursive: true }); } catch (e) { console.warn('Could not create data dir:', e.message); }
-}
-if (!fs.existsSync(STORAGE_FILE)) {
-    try { fs.writeFileSync(STORAGE_FILE, '[]', 'utf8'); } catch (e) { console.warn('Could not create storage file:', e.message); }
-}
+[DATA_DIR, HISTORY_FILE, DASHBOARD_FILE, PROGRESS_FILE].forEach(p => {
+    const isDir = p === DATA_DIR;
+    if (!fs.existsSync(p)) {
+        try {
+            if (isDir) fs.mkdirSync(p, { recursive: true });
+            else fs.writeFileSync(p, p === HISTORY_FILE ? '[]' : '{}', 'utf8');
+        } catch (e) { console.warn(`Storage init failed for ${p}:`, e.message); }
+    }
+});
 
-function readStorage() { try { return JSON.parse(fs.readFileSync(STORAGE_FILE, 'utf8')); } catch { return []; } }
-function writeStorage(data) { try { fs.writeFileSync(STORAGE_FILE, JSON.stringify(data, null, 2), 'utf8'); } catch (e) { console.warn('Write failed:', e.message); } }
+function db(file) {
+    return {
+        read: () => { try { return JSON.parse(fs.readFileSync(file, 'utf8')); } catch { return file === HISTORY_FILE ? [] : {}; } },
+        write: (data) => { try { fs.writeFileSync(file, JSON.stringify(data, null, 2), 'utf8'); } catch (e) { console.warn(`Write to ${file} failed:`, e.message); } }
+    };
+}
 
 // ─── Middleware ──────────────────────────────────────────────────────
 app.use(helmet({ contentSecurityPolicy: false })); // Basic Security Headers (disabled CSP for inline scripts in demo)
@@ -178,23 +187,10 @@ app.post('/api/parse-syllabus-pdf', aiLimiter, upload.single('pdf'), async (req,
     }
 });
 
-const SYLLABUS_DATA_FILE = path.join(DATA_DIR, 'syllabus_data.json');
-const PROGRESS_DATA_FILE = path.join(DATA_DIR, 'progress_data.json');
-
-if (!fs.existsSync(SYLLABUS_DATA_FILE)) {
-    try { fs.writeFileSync(SYLLABUS_DATA_FILE, '{}', 'utf8'); } catch (e) { }
-}
-if (!fs.existsSync(PROGRESS_DATA_FILE)) {
-    try { fs.writeFileSync(PROGRESS_DATA_FILE, '{}', 'utf8'); } catch (e) { }
-}
-
-function readJsonFile(file) { try { return JSON.parse(fs.readFileSync(file, 'utf8')); } catch { return {}; } }
-function writeJsonFile(file, data) { try { fs.writeFileSync(file, JSON.stringify(data, null, 2), 'utf8'); } catch (e) { } }
-
 // ─── Storage APIs (Legacy/History) ───────────────────────────────────
 app.get('/api/syllabi', authenticate, (req, res) => {
     // SECURITY FIX: Filter history by authenticated userId (IDOR Prevention)
-    const data = readStorage().filter(s => s.userId === req.userId);
+    const data = db(HISTORY_FILE).read().filter(s => s.userId === req.userId);
     res.json(data.map(s => ({
         id: s.id, name: s.name, savedAt: s.savedAt,
         courseCount: s.result?.courses?.length || 0,
@@ -205,7 +201,7 @@ app.get('/api/syllabi', authenticate, (req, res) => {
 
 app.get('/api/syllabi/:id', authenticate, (req, res) => {
     // SECURITY FIX: Enforce ownership check (IDOR Prevention)
-    const item = readStorage().find(s => s.id === req.params.id);
+    const item = db(HISTORY_FILE).read().find(s => s.id === req.params.id);
     if (!item) return res.status(404).json({ error: 'Not found' });
     if (item.userId !== req.userId) return res.status(403).json({ error: 'Forbidden: You do not own this record' });
     res.json(item);
@@ -222,24 +218,27 @@ app.post('/api/syllabi', authenticate, [
     
     const result = sanitizeObj(rawResult); // Prevent XSS via saved JSON payload
 
-    const data = readStorage();
+    const storage = db(HISTORY_FILE);
+    const data = storage.read();
     const newId = Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
     const entry = { id: newId, name: name || 'Untitled', rawText: rawText || '', result, savedAt: new Date().toISOString(), userId: req.userId };
     data.unshift(entry);
-    writeStorage(data);
+    storage.write(data);
 
     // Migration logic for detailed storage and progress
     if (tempId && tempId !== newId) {
         // Migrate detailed syllabus state
-        const sDb = readJsonFile(SYLLABUS_DATA_FILE);
+        const sStorage = db(DASHBOARD_FILE);
+        const sDb = sStorage.read();
         if (sDb[tempId]) {
             sDb[newId] = { ...sDb[tempId], syllabusId: newId, updatedAt: new Date().toISOString() };
-            writeJsonFile(SYLLABUS_DATA_FILE, sDb);
+            sStorage.write(sDb);
             console.log(`[Server] Migrated syllabus state from ${tempId} to ${newId}`);
         }
 
         // Migrate progress data
-        const pDb = readJsonFile(PROGRESS_DATA_FILE);
+        const pStorage = db(PROGRESS_FILE);
+        const pDb = pStorage.read();
         if (pDb[tempId]) {
             pDb[newId] = { ...pDb[tempId] };
             // Update topic keys if they contain the ID
@@ -249,7 +248,7 @@ app.post('/api/syllabi', authenticate, [
                 newProgress[newTopicKey] = pDb[newId][oldTopicKey];
             });
             pDb[newId] = newProgress;
-            writeJsonFile(PROGRESS_DATA_FILE, pDb);
+            pStorage.write(pDb);
             console.log(`[Server] Migrated progress data from ${tempId} to ${newId}`);
         }
     }
@@ -258,13 +257,14 @@ app.post('/api/syllabi', authenticate, [
 });
 
 app.delete('/api/syllabi/:id', authenticate, (req, res) => {
-    let data = readStorage();
+    const storage = db(HISTORY_FILE);
+    let data = storage.read();
     // SECURITY FIX: Only allow deletion if the user owns the record (IDOR Prevention)
     const index = data.findIndex(s => s.id === req.params.id);
     if (index === -1) return res.status(404).json({ error: 'Not found' });
     if (data[index].userId !== req.userId) return res.status(403).json({ error: 'Forbidden: You do not own this record' });
     data.splice(index, 1);
-    writeStorage(data);
+    storage.write(data);
     res.json({ success: true });
 });
 
@@ -274,21 +274,22 @@ app.post('/api/syllabus', authenticate, [
     validateRequest
 ], (req, res) => {
     const { syllabusId } = req.body;
-
-    const db = readJsonFile(SYLLABUS_DATA_FILE);
+    const storage = db(DASHBOARD_FILE);
+    const data = storage.read();
+    
     // Sanitize and Save payload to preserve HTML sections safely
-    db[syllabusId] = {
+    data[syllabusId] = {
         ...sanitizeObj(req.body),
         updatedAt: new Date().toISOString(),
         userId: req.userId // Track ownership internally
     };
-    writeJsonFile(SYLLABUS_DATA_FILE, db);
+    storage.write(data);
     res.json({ success: true });
 });
 
 app.get('/api/syllabus/:id', authenticate, (req, res) => {
-    const db = readJsonFile(SYLLABUS_DATA_FILE);
-    const item = db[req.params.id];
+    const data = db(DASHBOARD_FILE).read();
+    const item = data[req.params.id];
     // SECURITY FIX: Verify ownership
     if (!item) return res.json(null);
     if (item.userId !== req.userId) return res.status(403).json({ error: 'Forbidden: You do not own this record' });
@@ -304,18 +305,18 @@ app.post('/api/progress', authenticate, [
     validateRequest
 ], (req, res) => {
     const { syllabusId, topicId, completed, notes, revision } = req.body;
+    const storage = db(PROGRESS_FILE);
+    const data = storage.read();
+    
+    if (!data[syllabusId]) data[syllabusId] = {};
+    data[syllabusId][topicId] = { completed, notes, revision, updatedAt: new Date().toISOString(), userId: req.userId };
 
-    const db = readJsonFile(PROGRESS_DATA_FILE);
-    if (!db[syllabusId]) db[syllabusId] = {};
-    db[syllabusId][topicId] = { completed, notes, revision, updatedAt: new Date().toISOString(), userId: req.userId };
-
-    writeJsonFile(PROGRESS_DATA_FILE, db);
+    storage.write(data);
     res.json({ success: true });
 });
 
 app.get('/api/progress/:id', authenticate, (req, res) => {
-    const db = readJsonFile(PROGRESS_DATA_FILE);
-    const progress = db[req.params.id] || {};
+    const progress = db(PROGRESS_FILE).read()[req.params.id] || {};
     // SECURITY FIX: Only return topics modified by the current user
     const userProgress = {};
     for (const [topic, data] of Object.entries(progress)) {
