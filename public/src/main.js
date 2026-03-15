@@ -157,7 +157,7 @@ if(generatePlanBtn) {
                 if (reason && reason.includes('rate_limit')) {
                     showToast('Groq rate limit hit — try again in ~1 hour.', 'error');
                 } else {
-                    showToast('AI failed — using demo data.', 'error');
+                    showToast('AI failed — using demo data. ' + (reason ? '(' + reason.slice(0, 50) + ')' : ''), 'error');
                 }
             } else {
                 if(parseBadge) parseBadge.classList.remove('fallback'); 
