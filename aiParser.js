@@ -151,6 +151,7 @@ async function parseSyllabus(syllabusText, semester) {
 
       if (!response.ok) {
         const errText = await response.text();
+        console.error(`[AI Parser] Groq API Error: ${response.status} - ${errText}`);
         throw new Error(`Groq API Error: ${response.status} - ${errText}`);
       }
 

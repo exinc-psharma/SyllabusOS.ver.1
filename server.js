@@ -33,6 +33,9 @@ if (MISSING_ENV_VARS.length > 0) {
     } else {
         console.warn('[Security] Vercel environment detected. Server will run but AI features will fail.');
     }
+} else {
+    const keyPrefix = process.env.GROQ_API_KEY ? process.env.GROQ_API_KEY.substring(0, 10) : 'none';
+    console.log(`[Security] GROQ_API_KEY detected (starts with: ${keyPrefix}...)`);
 }
 
 const app = express();
