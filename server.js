@@ -88,15 +88,31 @@ const aiLimiter = rateLimit({
 app.use('/api/', globalLimiter);
 
 // Security: Auth & Validation Helpers
-const authenticate = (req, res, next) => {
+const authenticate = async (req, res, next) => {
     const authHeader = req.headers['authorization'];
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
         console.warn(`[Security] Unauthorized access attempt to ${req.path}`);
         return res.status(401).json({ error: 'Unauthorized: Session token required' });
     }
-    // For now, we use the client-generated random token as the persistent userId in Supabase
-    req.userId = authHeader.split(' ')[1]; 
-    next();
+    
+    const token = authHeader.split(' ')[1];
+    
+    try {
+        // Verify the token with Supabase
+        const { data: { user }, error } = await supabase.auth.getUser(token);
+        
+        if (error || !user) {
+            console.warn(`[Security] Invalid token for ${req.path}:`, error?.message);
+            return res.status(401).json({ error: 'Unauthorized: Invalid or expired session' });
+        }
+
+        req.userId = user.id; 
+        req.user = user;
+        next();
+    } catch (err) {
+        console.error(`[Security] Auth system error:`, err.message);
+        res.status(500).json({ error: 'Internal Auth Error' });
+    }
 };
 
 
@@ -420,6 +436,45 @@ app.get('/api/progress/:id', authenticate, async (req, res) => {
             };
         });
         res.json(formatted);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// ─── Migration API ──────────────────────────────────────────────────
+app.post('/api/migrate-data', authenticate, [
+    body('oldToken').trim().notEmpty(),
+    validateRequest
+], async (req, res) => {
+    try {
+        const { oldToken } = req.body;
+        const newUserId = req.userId; // Verified UUID from Supabase JWT
+
+        console.log(`[Migration] Moving data from ${oldToken} to ${newUserId}`);
+
+        // 1. Migrate Syllabi
+        const { error: errorSyllabi } = await supabase
+            .from('syllabi')
+            .update({ user_id: newUserId })
+            .eq('user_id', oldToken);
+
+        // 2. Migrate States
+        const { error: errorStates } = await supabase
+            .from('syllabus_states')
+            .update({ user_id: newUserId })
+            .eq('user_id', oldToken);
+
+        // 3. Migrate Progress
+        const { error: errorProgress } = await supabase
+            .from('progress')
+            .update({ user_id: newUserId })
+            .eq('user_id', oldToken);
+
+        if (errorSyllabi || errorStates || errorProgress) {
+            console.error('[Migration] Migration partially failed:', { errorSyllabi, errorStates, errorProgress });
+        }
+
+        res.json({ success: true, migrated: true });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }

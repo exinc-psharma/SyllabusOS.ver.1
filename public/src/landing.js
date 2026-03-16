@@ -1,6 +1,8 @@
 /** SyllabusOS Landing Page Interactive Script */
 import { initAuth } from './auth.js';
 import { loadHistoryList } from './api.js';
+import { supabase } from './supabase.js';
+import { createAuthModal } from './components/authModal.js';
 
 // Initialize Auth for session persistence
 initAuth();
@@ -52,38 +54,58 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     });
 
+    // --- NEW: Auth State Handler ---
+    const handleGetStarted = async (e) => {
+        if (e) e.preventDefault();
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        if (session) {
+            window.location.href = 'app.html';
+        } else {
+            createAuthModal((session) => {
+                if (session) window.location.href = 'app.html';
+            });
+        }
+    };
+
+    const getStartedBtns = document.querySelectorAll('a[href="app.html"]');
+    getStartedBtns.forEach(btn => btn.onclick = handleGetStarted);
+
     // --- NEW: History Preview Logic ---
     try {
-        const history = await loadHistoryList();
-        const historyContainer = document.getElementById('history-preview');
-        const historySection = document.getElementById('history-section');
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session) {
+            const history = await loadHistoryList();
+            const historyContainer = document.getElementById('history-preview');
+            const historySection = document.getElementById('history-section');
 
-        if (history && history.length > 0) {
-            historySection.style.display = 'block';
-            // Show only top 3
-            const recent = history.slice(0, 3);
-            historyContainer.innerHTML = recent.map(item => {
-                const dateRaw = item.savedAt || item.created_at || item.createdAt;
-                let dateDisplay = 'Recently';
-                if (dateRaw) {
-                    const d = new Date(dateRaw);
-                    dateDisplay = `${d.getDate()}/${d.getMonth() + 1}/${d.getFullYear().toString().slice(-2)}`;
-                }
-                return `
-                <div class="glass-card history-card reveal">
-                    <div>
-                        <div class="date">${dateDisplay}</div>
-                        <h4>${item.name || 'Untitled Syllabus'}</h4>
-                        <p style="font-size: 0.85rem; color: var(--text-muted);">${(item.rawText || '').substring(0, 60)}...</p>
+            if (history && history.length > 0) {
+                historySection.style.display = 'block';
+                // Show only top 3
+                const recent = history.slice(0, 3);
+                historyContainer.innerHTML = recent.map(item => {
+                    const dateRaw = item.savedAt || item.created_at || item.createdAt;
+                    let dateDisplay = 'Recently';
+                    if (dateRaw) {
+                        const d = new Date(dateRaw);
+                        dateDisplay = `${d.getDate()}/${d.getMonth() + 1}/${d.getFullYear().toString().slice(-2)}`;
+                    }
+                    return `
+                    <div class="glass-card history-card reveal">
+                        <div>
+                            <div class="date">${dateDisplay}</div>
+                            <h4>${item.name || 'Untitled Syllabus'}</h4>
+                            <p style="font-size: 0.85rem; color: var(--text-muted);">${(item.rawText || '').substring(0, 60)}...</p>
+                        </div>
+                        <div class="actions">
+                            <a href="app.html?id=${item.id}" class="btn btn-primary" style="padding: 8px 20px; font-size: 0.85rem;">Open</a>
+                        </div>
                     </div>
-                    <div class="actions">
-                        <a href="app.html?id=${item.id}" class="btn btn-primary" style="padding: 8px 20px; font-size: 0.85rem;">Open</a>
-                    </div>
-                </div>
-            `;}).join('');
-            
-            // Observe newly added cards
-            historyContainer.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
+                `;}).join('');
+                
+                // Observe newly added cards
+                historyContainer.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
+            }
         }
     } catch (err) {
         console.error('Failed to load landing history:', err);
