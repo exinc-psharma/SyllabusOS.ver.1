@@ -5,6 +5,11 @@ import { supabase } from './supabase.js';
 import { createAuthModal } from './components/authModal.js';
 import { createProfileUI } from './components/profileUI.js';
 
+// Global state for landing
+const landingState = {
+    uploadedPdfFile: null
+};
+
 // Initialize Auth for session persistence
 initAuth();
 
@@ -102,6 +107,37 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     const getStartedBtns = document.querySelectorAll('a[href="app.html"], .nav-cta');
     getStartedBtns.forEach(btn => btn.onclick = handleGetStarted);
+
+    // --- PDF HANDLING ---
+    const pdfInput = document.getElementById('pdf-input');
+    const pdfFilename = document.getElementById('pdf-filename');
+    const uploadZone = document.getElementById('upload-zone');
+
+    function handlePdf(file) {
+        landingState.uploadedPdfFile = file;
+        if (pdfFilename) {
+            pdfFilename.textContent = `📄 ${file.name}`;
+            pdfFilename.classList.remove('hidden');
+        }
+        // If user selects PDF, we might want to automatically trigger "Get Started" or just show feedback
+    }
+
+    if (pdfInput) {
+        pdfInput.addEventListener('change', () => {
+            if (pdfInput.files[0]) handlePdf(pdfInput.files[0]);
+        });
+    }
+
+    if (uploadZone) {
+        uploadZone.addEventListener('dragover', e => { e.preventDefault(); uploadZone.classList.add('dragover'); });
+        uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('dragover'));
+        uploadZone.addEventListener('drop', e => {
+            e.preventDefault();
+            uploadZone.classList.remove('dragover');
+            const f = e.dataTransfer.files[0];
+            if (f && f.type === 'application/pdf') handlePdf(f);
+        });
+    }
 
     // --- NEW: History Preview Logic ---
     try {
