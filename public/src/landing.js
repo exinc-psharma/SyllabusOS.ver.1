@@ -62,18 +62,21 @@ document.addEventListener('DOMContentLoaded', async () => {
             historySection.style.display = 'block';
             // Show only top 3
             const recent = history.slice(0, 3);
-            historyContainer.innerHTML = recent.map(item => `
+            historyContainer.innerHTML = recent.map(item => {
+                const dateRaw = item.savedAt || item.created_at || item.createdAt;
+                const dateDisplay = dateRaw ? new Date(dateRaw).toLocaleDateString() : 'Recently';
+                return `
                 <div class="glass-card history-card reveal">
                     <div>
-                        <div class="date">${new Date(item.createdAt || item.created_at).toLocaleDateString()}</div>
+                        <div class="date">${dateDisplay}</div>
                         <h4>${item.name || 'Untitled Syllabus'}</h4>
                         <p style="font-size: 0.85rem; color: var(--text-muted);">${(item.rawText || '').substring(0, 60)}...</p>
                     </div>
                     <div class="actions">
-                        <a href="app.html?id=${item.id}" class="btn btn-primary" style="padding: 8px 20px; font-size: 0.85rem;">Open Center</a>
+                        <a href="app.html?id=${item.id}" class="btn btn-primary" style="padding: 8px 20px; font-size: 0.85rem;">Open</a>
                     </div>
                 </div>
-            `).join('');
+            `;}).join('');
             
             // Observe newly added cards
             historyContainer.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));

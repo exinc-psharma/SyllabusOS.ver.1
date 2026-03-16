@@ -59,7 +59,7 @@ export function populateDashboard(resp) {
     if (tView) {
         if (mode === 'deadline' || mode === 'mixed') {
             const items = deliverables.length > 0 ? deliverables : courses;
-            tView.innerHTML = `<div class="timeline-body">${ordered.map((c, i) => `
+            tView.innerHTML = `<div class="timeline-body">${items.map((c, i) => `
                 <div class="timeline-event timeline-event-animated" style="animation-delay:${i * 0.06}s">
                     <div class="event-dot ${c.category || c.type}"></div>
                     <div class="event-content">

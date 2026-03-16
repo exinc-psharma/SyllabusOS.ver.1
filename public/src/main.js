@@ -427,6 +427,16 @@ if($('tab-tracker')) {
         }
     });
 }
+// ─── INITIALIZATION (Deep Linking) ──────────────────────────────────
+document.addEventListener('DOMContentLoaded', async () => {
+    const params = new URLSearchParams(window.location.search);
+    const loadId = params.get('id');
+    if (loadId) {
+        console.log(`[Init] Deep-link detected: ${loadId}`);
+        loadSavedUI(loadId);
+    }
+});
+
 // ─── PREMIUM INTERACTIVE EFFECTS ───────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
     const glow = $('cursor-glow');
