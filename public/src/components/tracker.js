@@ -40,11 +40,12 @@ export async function renderProgressTracker(courses) {
     let html = bannerHtml + `<div class="${lockedClass}">`;
     let totalTopicsCount = 0;
 
-    courses.forEach((c) => {
+    courses.forEach((c, idx) => {
         const units = c.units || [];
         if (units.length === 0) return;
 
-        const courseId = c.course_code || c.course_name.slice(0, 15);
+        const courseSlug = (c.course_code || c.course_name || 'subj').replace(/[^a-zA-Z0-9]/g, '').slice(0, 10);
+        const courseId = `s${idx}_${courseSlug}`;
         const courseDisplayName = c.course_name || courseId;
 
         html += `<div class="course-accordion">
@@ -67,7 +68,7 @@ export async function renderProgressTracker(courses) {
 
             topics.forEach((topic, tIdx) => {
                 totalTopicsCount++;
-                const topicKey = `${courseId}*${unitName}*${tIdx}`;
+                const topicKey = `${courseId}_u${uIdx}_t${tIdx}`;
                 const st = trackerState[topicKey] || { completed: false, notes: '', revision: false };
 
                 const compClass = st.completed ? 'completed' : '';
@@ -126,12 +127,18 @@ export async function renderProgressTracker(courses) {
 }
 
 function attachTrackerListeners(container, totalTopicsCount, syllabusId) {
+    let saveTimeout = null;
+
     async function save(topicItem) {
+        const liveId = (state.currentResponse && state.currentResponse.id) ? state.currentResponse.id : 'temp';
         const key = topicItem.dataset.key;
         const cb = topicItem.querySelector('.topic-checkbox');
         const nt = topicItem.querySelector('.topic-notes');
         const st = topicItem.querySelector('.topic-star');
-        await saveTopicProgress(syllabusId, key, cb.checked, nt.value, st.classList.contains('active'));
+        
+        console.log(`[Tracker] Saving topic="${key}" to syllabus="${liveId}"...`);
+        
+        await saveTopicProgress(liveId, key, cb.checked, nt.value || '', st.classList.contains('active'));
 
         const currentCompletedCount = container.querySelectorAll('.topic-item.completed').length;
         const currentTotalTopics = container.querySelectorAll('.topic-item').length;
@@ -154,8 +161,18 @@ function attachTrackerListeners(container, totalTopicsCount, syllabusId) {
         }
     };
 
+    container.oninput = (e) => {
+        if (e.target.classList.contains('topic-notes')) {
+            if (saveTimeout) clearTimeout(saveTimeout);
+            saveTimeout = setTimeout(() => {
+                save(e.target.closest('.topic-item'));
+            }, 1000); // 1s debounce
+        }
+    };
+
     container.onfocusout = (e) => {
         if (e.target.classList.contains('topic-notes')) {
+            if (saveTimeout) clearTimeout(saveTimeout);
             save(e.target.closest('.topic-item'));
         }
     };
