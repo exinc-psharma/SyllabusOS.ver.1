@@ -1,5 +1,5 @@
 // ─── AUTH MODAL COMPONENT ──────────────────────────────────────────
-import { supabase } from './supabase.js';
+import { supabase } from '../supabase.js';
 
 export function createAuthModal(onSuccess) {
     const modal = document.createElement('div');
