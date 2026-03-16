@@ -425,6 +425,35 @@ app.get('/api/progress/:id', authenticate, async (req, res) => {
     }
 });
 
+// ─── Contact Messages ────────────────────────────────────────────────
+app.post('/api/contact', [
+    body('name').trim().isLength({ min: 2, max: 100 }).withMessage('Name required'),
+    body('email').isEmail().normalizeEmail().withMessage('Valid email required'),
+    body('message').trim().isLength({ min: 10, max: 2000 }).withMessage('Message must be between 10-2000 characters'),
+    validateRequest
+], async (req, res) => {
+    try {
+        const { name, email, message } = req.body;
+        
+        const { data, error } = await supabase
+            .from('messages')
+            .insert([{ name, email, message, created_at: new Date().toISOString() }])
+            .select()
+            .single();
+
+        if (error) {
+            console.error('[Database] Contact save failed:', error.message);
+            throw error;
+        }
+
+        console.log(`[Contact] New message from ${email}`);
+        res.json({ success: true, id: data.id });
+    } catch (err) {
+        console.error('[Server] Contact error:', err.message);
+        res.status(500).json({ error: 'Failed to send message. Please try again later.' });
+    }
+});
+
 if (require.main === module) {
     app.listen(PORT, () => console.log(`✓ SyllabusOS running on http://localhost:${PORT}`));
 }

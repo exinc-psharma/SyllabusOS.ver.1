@@ -85,25 +85,47 @@ document.addEventListener('DOMContentLoaded', async () => {
     // --- NEW: Contact Form Logic ---
     const contactForm = document.getElementById('contact-form');
     if (contactForm) {
-        contactForm.addEventListener('submit', (e) => {
+        contactForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const status = document.getElementById('form-status');
             const submitBtn = contactForm.querySelector('button');
             
+            const name = contactForm.querySelector('input[type="text"]').value;
+            const email = contactForm.querySelector('input[type="email"]').value;
+            const message = contactForm.querySelector('textarea').value;
+
             submitBtn.disabled = true;
             submitBtn.innerText = 'Sending...';
             
-            // Simulated submission
-            setTimeout(() => {
-                contactForm.reset();
+            try {
+                const response = await fetch('/api/contact', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, email, message })
+                });
+
+                const result = await response.json();
+                
+                if (response.ok) {
+                    contactForm.reset();
+                    status.innerText = 'Message sent successfully!';
+                    status.style.color = '#10B981';
+                    status.style.display = 'block';
+                } else {
+                    throw new Error(result.error || 'Failed to send message');
+                }
+            } catch (err) {
+                console.error('Contact Error:', err);
+                status.innerText = err.message || 'ErrorMessage failed to send';
+                status.style.color = '#EF4444';
                 status.style.display = 'block';
+            } finally {
                 submitBtn.disabled = false;
                 submitBtn.innerText = 'Send Message';
-                
                 setTimeout(() => {
                     status.style.display = 'none';
                 }, 5000);
-            }, 1000);
+            }
         });
     }
 });
