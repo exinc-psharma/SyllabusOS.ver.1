@@ -314,7 +314,10 @@ async function loadHistoryUI() {
                 <div class="history-item-name">${safeItem.name}</div>
                 <div class="history-item-meta">
                     <span>${safeItem.courseCount} course(s)${taskText}</span>
-                    <span>${new Date(safeItem.savedAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}</span>
+                    <span>${(() => {
+                        const d = new Date(safeItem.savedAt);
+                        return `${d.getDate()}/${d.getMonth() + 1}/${d.getFullYear().toString().slice(-2)}`;
+                    })()}</span>
                 </div>
                 <div class="history-item-actions"><button class="history-delete" data-id="${safeItem.id}" onclick="event.stopPropagation()">Delete</button></div>
             </div>

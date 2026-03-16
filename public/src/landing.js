@@ -64,7 +64,11 @@ document.addEventListener('DOMContentLoaded', async () => {
             const recent = history.slice(0, 3);
             historyContainer.innerHTML = recent.map(item => {
                 const dateRaw = item.savedAt || item.created_at || item.createdAt;
-                const dateDisplay = dateRaw ? new Date(dateRaw).toLocaleDateString() : 'Recently';
+                let dateDisplay = 'Recently';
+                if (dateRaw) {
+                    const d = new Date(dateRaw);
+                    dateDisplay = `${d.getDate()}/${d.getMonth() + 1}/${d.getFullYear().toString().slice(-2)}`;
+                }
                 return `
                 <div class="glass-card history-card reveal">
                     <div>
