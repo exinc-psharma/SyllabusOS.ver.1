@@ -7,15 +7,17 @@ import { createAuthModal } from './components/authModal.js';
 // Initialize Auth for session persistence
 initAuth();
 
-// Preloader Handler
-window.addEventListener('load', () => {
+// Preloader Handler with Fail-safe
+const hidePreloader = () => {
     const preloader = document.getElementById('preloader');
-    if (preloader) {
-        setTimeout(() => {
-            preloader.classList.add('hidden');
-        }, 800);
+    if (preloader && !preloader.classList.contains('hidden')) {
+        preloader.classList.add('hidden');
     }
-});
+};
+
+window.addEventListener('load', () => setTimeout(hidePreloader, 600));
+// Force hide after 3.5s if load event hangs
+setTimeout(hidePreloader, 3500);
 
 // Cursor Glow Effect
 document.addEventListener('DOMContentLoaded', () => {

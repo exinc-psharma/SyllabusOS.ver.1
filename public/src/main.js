@@ -6,9 +6,7 @@ import { populateDashboard } from './components/dashboard.js';
 import { renderProgressTracker } from './components/tracker.js';
 
 // Init Authentication Wrapper
-(async () => {
-    await initAuth();
-})();
+initAuth();
 
 const syllabusInput = $('syllabus-input');
 const generatePlanBtn = $('generate-plan-btn');

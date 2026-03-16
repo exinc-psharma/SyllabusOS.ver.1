@@ -1,10 +1,10 @@
 import { supabase } from './supabase.js';
 
 // ─── AUTHENTICATION WRAPPER ──────────────────────────────────────────
-export async function initAuth() {
+export function initAuth() {
     const originalFetch = window.fetch;
 
-    window.fetch = async function() {
+    window.fetch = function() {
         let [resource, config] = arguments;
         
         // Only attach auth to our internal API calls
@@ -12,16 +12,20 @@ export async function initAuth() {
             config = config || {};
             config.headers = config.headers || {};
 
-            // Get the latest session to ensure we have the most recent JWT
-            const { data: { session } } = await supabase.auth.getSession();
-            
-            if (session?.access_token) {
-                if (config.headers instanceof Headers) {
-                    config.headers.append('Authorization', 'Bearer ' + session.access_token);
-                } else {
-                    config.headers['Authorization'] = 'Bearer ' + session.access_token;
+            // Synchronously check if there's a session in memory/storage
+            // We use getSession() which is async, so we wrap the fetch in an async function
+            return (async () => {
+                const { data: { session } } = await supabase.auth.getSession();
+                
+                if (session?.access_token) {
+                    if (config.headers instanceof Headers) {
+                        config.headers.append('Authorization', 'Bearer ' + session.access_token);
+                    } else {
+                        config.headers['Authorization'] = 'Bearer ' + session.access_token;
+                    }
                 }
-            }
+                return originalFetch(resource, config);
+            })();
         }
         return originalFetch(resource, config);
     };
