@@ -1,12 +1,29 @@
-import { initAuth } from './auth.js';
-import { $, showToast, switchScreen, sanitizeObjClient } from './utils.js';
-import { state } from './state.js';
-import { parseSyllabusText, parseSyllabusPdf, saveSyllabus, loadHistoryList, loadSyllabusById, deleteSyllabus, saveFrozenSyllabusData } from './api.js';
-import { populateDashboard } from './components/dashboard.js';
-import { renderProgressTracker } from './components/tracker.js';
+import { createProfileUI } from './components/profileUI.js';
+import { supabase } from './supabase.js';
 
 // Init Authentication Wrapper
 initAuth();
+
+// --- AUTH UI HANDLER ---
+const updateNavAuth = async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    const navActions = document.querySelector('.nav-actions');
+
+    if (session) {
+        // Check if profile already exists
+        if (!document.querySelector('.profile-nav-wrap')) {
+            createProfileUI(navActions, session);
+        }
+    }
+};
+
+// Initial check
+updateNavAuth();
+
+// Listen for auth changes
+supabase.auth.onAuthStateChange((event, session) => {
+    updateNavAuth();
+});
 
 const syllabusInput = $('syllabus-input');
 const generatePlanBtn = $('generate-plan-btn');

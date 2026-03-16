@@ -3,6 +3,7 @@ import { initAuth } from './auth.js';
 import { loadHistoryList } from './api.js';
 import { supabase } from './supabase.js';
 import { createAuthModal } from './components/authModal.js';
+import { createProfileUI } from './components/profileUI.js';
 
 // Initialize Auth for session persistence
 initAuth();
@@ -43,16 +44,45 @@ const revealObserver = new IntersectionObserver((entries) => {
 });
 
 document.addEventListener('DOMContentLoaded', async () => {
+    // --- AUTH UI HANDLER ---
+    const updateNavAuth = async () => {
+        const { data: { session } } = await supabase.auth.getSession();
+        const navLinks = document.querySelector('.nav-links');
+        const ctaBtn = document.querySelector('.nav-cta');
+
+        if (session) {
+            if (ctaBtn) ctaBtn.style.display = 'none';
+            // Check if profile already exists
+            if (!document.querySelector('.profile-nav-wrap')) {
+                createProfileUI(navLinks, session);
+            }
+        } else {
+            if (ctaBtn) ctaBtn.style.display = 'inline-flex';
+            const profile = document.querySelector('.profile-nav-wrap');
+            if (profile) profile.remove();
+        }
+    };
+
+    // Initial check
+    updateNavAuth();
+
+    // Listen for auth changes
+    supabase.auth.onAuthStateChange((event, session) => {
+        updateNavAuth();
+    });
+
     const reveals = document.querySelectorAll('.reveal');
     reveals.forEach(el => revealObserver.observe(el));
 
     // Navbar Scroll Effect
     const navbar = document.getElementById('navbar');
     window.addEventListener('scroll', () => {
-        if (window.scrollY > 50) {
-            navbar.classList.add('scrolled');
-        } else {
-            navbar.classList.remove('scrolled');
+        if (navbar) {
+            if (window.scrollY > 50) {
+                navbar.classList.add('scrolled');
+            } else {
+                navbar.classList.remove('scrolled');
+            }
         }
     });
 
@@ -70,7 +100,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     };
 
-    const getStartedBtns = document.querySelectorAll('a[href="app.html"]');
+    const getStartedBtns = document.querySelectorAll('a[href="app.html"], .nav-cta');
     getStartedBtns.forEach(btn => btn.onclick = handleGetStarted);
 
     // --- NEW: History Preview Logic ---
