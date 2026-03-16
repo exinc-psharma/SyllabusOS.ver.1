@@ -1,3 +1,9 @@
+import { initAuth } from './auth.js';
+import { $, showToast, switchScreen, sanitizeObjClient } from './utils.js';
+import { state } from './state.js';
+import { parseSyllabusText, parseSyllabusPdf, saveSyllabus, loadHistoryList, loadSyllabusById, deleteSyllabus, saveFrozenSyllabusData } from './api.js';
+import { populateDashboard } from './components/dashboard.js';
+import { renderProgressTracker } from './components/tracker.js';
 import { createProfileUI } from './components/profileUI.js';
 import { supabase } from './supabase.js';
 
