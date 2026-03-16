@@ -119,7 +119,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                     status.style.color = '#10B981';
                     status.style.display = 'block';
                 } else {
-                    throw new Error(result.error || 'Failed to send message');
+                    const msg = result.details ? result.details.map(d => d.msg).join(', ') : (result.error || 'Failed to send message');
+                    throw new Error(msg);
                 }
             } catch (err) {
                 console.error('Contact Error:', err);

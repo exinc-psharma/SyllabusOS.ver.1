@@ -429,7 +429,7 @@ app.get('/api/progress/:id', authenticate, async (req, res) => {
 app.post('/api/contact', [
     body('name').trim().isLength({ min: 2, max: 100 }).withMessage('Name required'),
     body('email').isEmail().normalizeEmail().withMessage('Valid email required'),
-    body('message').trim().isLength({ min: 10, max: 2000 }).withMessage('Message must be between 10-2000 characters'),
+    body('message').trim().isLength({ min: 5, max: 2000 }).withMessage('Message must be between 5-2000 characters'),
     validateRequest
 ], async (req, res) => {
     try {
