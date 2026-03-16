@@ -59,7 +59,9 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (ctaBtn) ctaBtn.style.display = 'none';
             // Check if profile already exists
             if (!document.querySelector('.profile-nav-wrap')) {
-                createProfileUI(navLinks, session);
+                const li = document.createElement('li');
+                createProfileUI(li, session);
+                navLinks.appendChild(li);
             }
         } else {
             if (ctaBtn) ctaBtn.style.display = 'inline-flex';
