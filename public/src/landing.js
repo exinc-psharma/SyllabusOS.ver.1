@@ -13,6 +13,15 @@ const landingState = {
 // Initialize Auth for session persistence
 initAuth();
 
+// Auto-redirect if already logged in
+const checkSessionRedirect = async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session && !window.location.search.includes('no_redirect')) {
+        window.location.href = 'app.html';
+    }
+};
+checkSessionRedirect();
+
 // Preloader Handler with Fail-safe
 const hidePreloader = () => {
     const preloader = document.getElementById('preloader');

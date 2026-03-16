@@ -1,5 +1,6 @@
 // ─── AUTH MODAL COMPONENT ──────────────────────────────────────────
 import { supabase } from '../supabase.js';
+import { signInWithGoogle } from '../auth.js';
 
 export function createAuthModal(onSuccess) {
     const modal = document.createElement('div');
@@ -32,9 +33,9 @@ export function createAuthModal(onSuccess) {
 
             <div class="social-auth">
                 <div class="divider"><span>OR</span></div>
-                <button class="btn btn-outline social-btn" disabled>
+                <button class="btn btn-outline social-btn" id="google-auth-btn">
                     <img src="https://www.google.com/favicon.ico" alt="Google">
-                    Continue with Google (Coming Soon)
+                    Continue with Google
                 </button>
             </div>
         </div>
@@ -117,6 +118,22 @@ export function createAuthModal(onSuccess) {
             submitBtn.innerText = isLogin ? 'Log In' : 'Create Account';
         }
     };
+
+    // Google Auth Listener
+    const googleBtn = modal.querySelector('#google-auth-btn');
+    if (googleBtn) {
+        googleBtn.onclick = async () => {
+            try {
+                googleBtn.disabled = true;
+                googleBtn.innerHTML = `<span class="loader"></span> Connecting...`;
+                await signInWithGoogle();
+            } catch (err) {
+                errorMsg.innerText = err.message || 'Google Login failed';
+                googleBtn.disabled = false;
+                googleBtn.innerHTML = `<img src="https://www.google.com/favicon.ico" alt="Google"> Continue with Google`;
+            }
+        };
+    }
 
     return modal;
 }

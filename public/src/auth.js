@@ -30,3 +30,19 @@ export function initAuth() {
         return originalFetch(resource, config);
     };
 }
+
+/** ─── GOOGLE OAUTH ────────────────────────────────────────── */
+export async function signInWithGoogle() {
+    const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+            redirectTo: window.location.origin + '/app.html'
+        }
+    });
+
+    if (error) {
+        console.error('Google login error:', error);
+        throw error;
+    }
+    return data;
+}
