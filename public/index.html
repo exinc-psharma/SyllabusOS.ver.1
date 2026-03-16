@@ -31,13 +31,15 @@
             <a class="nav-logo" href="#">Syllabus<span>OS</span></a>
             <ul class="nav-links">
                 <li><a href="#home" class="active">Home</a></li>
+                <li><a href="#history-section">History</a></li>
                 <li><a href="#features">Features</a></li>
-                <li><a href="app.html" class="btn btn-primary nav-cta">Get Started</a></li>
+                <li><a href="#reviews">Reviews</a></li>
+                <li><a href="#contact">Contact</a></li>
+                <li><a href="app.html" class="btn btn-primary nav-cta" style="padding: 8px 20px; font-size: 0.85rem;">Get Started</a></li>
             </ul>
         </div>
     </nav>
 
-    <!-- HERO SECTION -->
     <section class="hero section" id="home">
         <div class="container">
             <div class="hero-grid">
@@ -59,9 +61,9 @@
                     </div>
                 </div>
 
-                <div class="hero-visual">
+                <div class="hero-visual reveal">
                     <div class="hero-orb"></div>
-                    <div class="glass-card hero-card-main reveal">
+                    <div class="glass-card hero-card-main">
                         <div class="icon-wrap">🚀</div>
                         <h3>Academic Mastery</h3>
                         <p>Our AI analyzes your syllabus to prioritize what actually matters for your grades.</p>
@@ -70,6 +72,26 @@
             </div>
         </div>
     </section>
+
+    <!-- HISTORY SECTION (DYNAMIC) -->
+    <section class="history section" id="history-section" style="display: none; padding-top: 40px;">
+        <div class="container">
+            <div class="section-header reveal" style="text-align: center; margin-bottom: 40px;">
+                <h2 style="font-family: 'Outfit', sans-serif; font-size: 2rem; font-weight: 800; margin-bottom: 12px;">Resume your <span class="gradient-text">Planning.</span></h2>
+                <p style="color: var(--text-muted);">Pick up exactly where you left off with your recent syllabi.</p>
+            </div>
+            <div id="history-preview" class="history-container">
+                <!-- Data injected by landing.js -->
+            </div>
+        </div>
+    </section>
+
+    <!-- Wave Divider -->
+    <div class="wave-divider">
+        <svg data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 120" preserveAspectRatio="none">
+            <path d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V0H0V27.35A600.21,600.21,0,0,0,321.39,56.44Z" class="shape-fill"></path>
+        </svg>
+    </div>
 
     <!-- FEATURES SECTION -->
     <section class="features section" id="features">
@@ -99,6 +121,96 @@
                     <h3>Busy Week Detection</h3>
                     <p>Predict intense workload weeks based on exam dates and deliverables before they happen.</p>
                 </div>
+                <div class="glass-card feature-card reveal">
+                    <div class="icon-wrap" style="margin-bottom: 20px;">⚡</div>
+                    <h3>Study Flow</h3>
+                    <p>Automated daily study schedules tailored to your semester's unique demands and goals.</p>
+                </div>
+                <div class="glass-card feature-card reveal">
+                    <div class="icon-wrap" style="margin-bottom: 20px;">📓</div>
+                    <h3>Persistent Notes</h3>
+                    <p>Centralized topic-specific storage that ensures your ideas stay connected to your progress.</p>
+                </div>
+            </div>
+        </div>
+
+    <!-- REVIEWS SECTION -->
+    <section class="reviews section" id="reviews">
+        <div class="container">
+            <div class="section-header reveal" style="text-align: center; margin-bottom: 60px;">
+                <h2 style="font-family: 'Outfit', sans-serif; font-size: 2.5rem; font-weight: 800; margin-bottom: 16px;">Loved by <span class="gradient-text">High-Achievers.</span></h2>
+                <p style="color: var(--text-muted); max-width: 600px; margin: 0 auto;">Join thousands of students who have transformed their academic approach with SyllabusOS.</p>
+            </div>
+            <div class="reviews-grid">
+                <div class="glass-card review-card reveal">
+                    <span class="quote-icon">"</span>
+                    <p>"SyllabusOS turned my overwhelming 20-page syllabus into a clear checklist. I've never felt more in control of my semester."</p>
+                    <div class="review-author">
+                        <img src="https://ui-avatars.com/api/?name=Alex+Johnson&background=6366F1&color=fff" alt="Alex">
+                        <div class="info">
+                            <h4>Alex Johnson</h4>
+                            <p>Computer Science Major</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="glass-card review-card reveal">
+                    <span class="quote-icon">"</span>
+                    <p>"The timeline view is a game changer. I can see exactly when my busy weeks are coming and plan my social life around them."</p>
+                    <div class="review-author">
+                        <img src="https://ui-avatars.com/api/?name=Sarah+Chen&background=A855F7&color=fff" alt="Sarah">
+                        <div class="info">
+                            <h4>Sarah Chen</h4>
+                            <p>Pre-Med Senior</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="glass-card review-card reveal">
+                    <span class="quote-icon">"</span>
+                    <p>"Finally, an AI tool that actually understands academic structure. The extraction is near perfect every time."</p>
+                    <div class="review-author">
+                        <img src="https://ui-avatars.com/api/?name=Marcus+Vell&background=F472B6&color=fff" alt="Marcus">
+                        <div class="info">
+                            <h4>Marcus Vell</h4>
+                            <p>Law Student</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CONTACT SECTION -->
+    <section class="contact section" id="contact">
+        <div class="container">
+            <div class="glass-card contact-grid reveal">
+                <div class="contact-info">
+                    <h2 style="font-family: 'Outfit', sans-serif; font-size: 2.5rem; font-weight: 800; margin-bottom: 24px;">Get in <span class="gradient-text">Touch.</span></h2>
+                    <p style="color: var(--text-muted); margin-bottom: 32px; font-size: 1.1rem;">Have questions about SyllabusOS? Want to collaborate or suggest a feature? We'd love to hear from you.</p>
+                    <div style="display: flex; flex-direction: column; gap: 16px;">
+                        <div style="display: flex; align-items: center; gap: 12px; color: var(--text-muted);">
+                            <span style="color: var(--primary);">📧</span> syllabusos.co@gmail.com
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 12px; color: var(--text-muted);">
+                            <span style="color: var(--primary);">📍</span> New Delhi, India
+                        </div>
+                    </div>
+                </div>
+                <form class="contact-form" id="contact-form">
+                    <div class="form-group">
+                        <label>Your Name</label>
+                        <input type="text" class="form-input" placeholder="John Doe" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Email Address</label>
+                        <input type="email" class="form-input" placeholder="john@example.com" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Message</label>
+                        <textarea class="form-input" placeholder="What's on your mind?" required></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary" style="margin-top: 10px;">Send Message</button>
+                    <p id="form-status" style="display: none; font-size: 0.9rem; color: #10B981; margin-top: 10px;">Message sent successfully!</p>
+                </form>
             </div>
         </div>
     </section>
@@ -111,6 +223,6 @@
         </div>
     </footer>
 
-    <script src="src/landing.js"></script>
+    <script type="module" src="src/landing.js"></script>
 </body>
 </html>

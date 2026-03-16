@@ -1,4 +1,9 @@
 /** SyllabusOS Landing Page Interactive Script */
+import { initAuth } from './auth.js';
+import { loadHistoryList } from './api.js';
+
+// Initialize Auth for session persistence
+initAuth();
 
 // Preloader Handler
 window.addEventListener('load', () => {
@@ -33,7 +38,7 @@ const revealObserver = new IntersectionObserver((entries) => {
     rootMargin: '0px 0px -100px 0px'
 });
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
     const reveals = document.querySelectorAll('.reveal');
     reveals.forEach(el => revealObserver.observe(el));
 
@@ -46,16 +51,82 @@ document.addEventListener('DOMContentLoaded', () => {
             navbar.classList.remove('scrolled');
         }
     });
+
+    // --- NEW: History Preview Logic ---
+    try {
+        const history = await loadHistoryList();
+        const historyContainer = document.getElementById('history-preview');
+        const historySection = document.getElementById('history-section');
+
+        if (history && history.length > 0) {
+            historySection.style.display = 'block';
+            // Show only top 3
+            const recent = history.slice(0, 3);
+            historyContainer.innerHTML = recent.map(item => `
+                <div class="glass-card history-card reveal">
+                    <div>
+                        <div class="date">${new Date(item.createdAt || item.created_at).toLocaleDateString()}</div>
+                        <h4>${item.name || 'Untitled Syllabus'}</h4>
+                        <p style="font-size: 0.85rem; color: var(--text-muted);">${(item.rawText || '').substring(0, 60)}...</p>
+                    </div>
+                    <div class="actions">
+                        <a href="app.html?id=${item.id}" class="btn btn-primary" style="padding: 8px 20px; font-size: 0.85rem;">Open Center</a>
+                    </div>
+                </div>
+            `).join('');
+            
+            // Observe newly added cards
+            historyContainer.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
+        }
+    } catch (err) {
+        console.error('Failed to load landing history:', err);
+    }
+
+    // --- NEW: Contact Form Logic ---
+    const contactForm = document.getElementById('contact-form');
+    if (contactForm) {
+        contactForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const status = document.getElementById('form-status');
+            const submitBtn = contactForm.querySelector('button');
+            
+            submitBtn.disabled = true;
+            submitBtn.innerText = 'Sending...';
+            
+            // Simulated submission
+            setTimeout(() => {
+                contactForm.reset();
+                status.style.display = 'block';
+                submitBtn.disabled = false;
+                submitBtn.innerText = 'Send Message';
+                
+                setTimeout(() => {
+                    status.style.display = 'none';
+                }, 5000);
+            }, 1000);
+        });
+    }
 });
 
-// Tilt Effect for Hero Card (Subtle)
+// Tilt Effect for Cards
 document.addEventListener('mousemove', (e) => {
-    const card = document.querySelector('.hero-card-main');
-    if (card) {
-        const { clientX, clientY } = e;
-        const { innerWidth, innerHeight } = window;
-        const xRotation = ((clientY / innerHeight) - 0.5) * 15;
-        const yRotation = ((clientX / innerWidth) - 0.5) * -15;
-        card.style.transform = `rotate3d(1, 0, 0, ${xRotation}deg) rotate3d(0, 1, 0, ${yRotation}deg) translateZ(20px)`;
-    }
+    const cards = document.querySelectorAll('.glass-card.reveal');
+    const { clientX, clientY } = e;
+    const { innerWidth, innerHeight } = window;
+
+    cards.forEach(card => {
+        const rect = card.getBoundingClientRect();
+        // Only tilt if near the card to save performance
+        const dx = clientX - (rect.left + rect.width / 2);
+        const dy = clientY - (rect.top + rect.height / 2);
+        const dist = Math.sqrt(dx*dx + dy*dy);
+
+        if (dist < 400) {
+            const xRotation = (dy / innerHeight) * 20;
+            const yRotation = (dx / innerWidth) * -20;
+            card.style.transform = `perspective(1000px) rotateX(${xRotation}deg) rotateY(${yRotation}deg) translateY(-8px)`;
+        } else {
+             card.style.transform = '';
+        }
+    });
 });
