@@ -1,74 +1,65 @@
-# SyllabusOS
+# SyllabusOS 🚀
+**The Ultimate AI-Powered Academic Command Center**
 
-**AI-Powered Academic Semester Command Center**
+![Dashboard Preview](dashboard_preview.png)
 
-![SyllabusOS Dashboard](dashboard.png)
+SyllabusOS transforms chaotic course documents into a structured, trackable academic roadmap. Built for the modern student, it combines blazing-fast AI inference with a stunning, high-density dashboard.
 
-SyllabusOS is a modern, responsive web application that instantly transforms messy course syllabi (PDF or Text) into an organized, trackable semester plan. Built during a hackathon and subsequently upgraded with premium "Bento Grid" aesthetics and robust security.
+---
 
 ## ✨ Features
 
-- **Instant AI Extraction**: Paste any syllabus and watch as Groq's blazing-fast Llama 3 model extracts courses, credits, and deliverables.
-- **Bento Grid Dashboard**: A beautiful, glassmorphic layout providing a bird's-eye view of your entire semester.
-- **Smart Priorities**: Automatically highlights high-weight exams and projects.
-- **Interactive Progress Tracker**: Mark off topics as you study them, with satisfying animations and visual progress rings.
-- **Timeline Rail**: A horizontally scrolling chronological timeline of your deliverables.
-- **Privacy-First Storage**: Saves your syllabus data locally and securely.
+- **⚡ Blazing Fast AI Parsing**: Instantly extract modules, topics, and credits using Groq's high-speed Llama 3 models.
+- **🍱 Bento Grid Dashboard**: A premium, "spatial" glassmorphic interface for a complete bird's-eye view of your semester.
+- **🔐 Secure Auth & Sync**: Powered by Supabase, featuring seamless **Google OAuth** and per-user secure storage.
+- **🔄 Smooth Migration**: Automatically migrates anonymous syllabus data to your account upon first login.
+- **📊 Adaptive Tracker**: Mark off topics as you study; watch progress rings update and study times recalculate in real-time.
+- **🛤️ Chronological Rail**: A horizontally scrolling timeline of your academic deliverables.
 
-## 🛠️ Tech Stack
+---
 
-- **Frontend**: Vanilla HTML/JavaScript (ES Modules), Custom CSS Grid / Flexbox (No CSS Frameworks)
-- **Backend**: Node.js, Express.js
-- **AI Integration**: Groq SDK (Llama 3 8B)
-- **Security**: Helmet, Express Rate Limit, Express Validator, Deep HTML Sanitization for XSS prevention.
+## 🚀 Quick Start (Demo Ready)
 
-## 🚀 Local Development Setup
-
-1. **Clone the repository:**
-
+1. **Clone & Install**:
    ```bash
    git clone https://github.com/your-username/SyllabusOS.git
    cd SyllabusOS
-   ```
-
-2. **Install dependencies:**
-
-   ```bash
    npm install
    ```
 
-3. **Configure Environment Variables:**
-   Create a `.env` file in the root directory:
+2. **Configure Environment**:
+   Copy `.env.example` to `.env` and add your keys for **Groq Cloud** and **Supabase**.
 
-   ```env
-   PORT=3000
-   GROQ_API_KEY=your_groq_api_key_here
-   ```
-
-4. **Start the server:**
-
+3. **Launch**:
    ```bash
    npm run start
    ```
 
-5. **Open in browser:**
-   Navigate to `http://localhost:3000`
+---
 
-## 🛡️ Security
+## 🧪 Experience the Flow (Judges' Checklist)
 
-This application implements multiple layers of security:
+Follow these steps to experience the full power of SyllabusOS:
 
-- **Rate Limiting**: IP-based rate limits to prevent API abuse.
-- **XSS Protection**: Deep recursive HTML entity encoding on both client and server boundaries.
-- **IDOR Protection**: Strict ownership checks for syllabus access and deletion.
-- **HTTP Headers**: Secured via Helmet (with CSP configured for demo flexibility).
+1. **Pasted Power**: Go to the landing page and paste a syllabus from the [TEST_SUITE.md](TEST_SUITE.md).
+2. **Anonymous-to-Auth**: Generate the dashboard, then click the **Profile Logo** (top right) to sign up via Google or Email.
+3. **The Magic**: Watch your anonymous data automatically sync to your new authenticated profile.
+4. **Interact**: Toggle topics in the dashboard, scroll the timeline, and check the "Estimated Study Time" recalculate.
 
-## 🚀 Deployment (Vercel)
+---
 
-SyllabusOS is fully optimized for Vercel Serverless deployment.
-Simply run `vercel` via CLI, or connect your GitHub repository to Vercel.
+## 📚 Documentation
+- [TEST_SUITE.md](TEST_SUITE.md): Sample syllabi for judges and testing instructions.
+- [HACKATHON_JUDGES.md](HACKATHON_JUDGES.md): Technical deep-dive and architectural release notes.
 
-- _Note:_ Ensure `GROQ_API_KEY` is added to your Vercel Environment Variables.
+---
+
+## 🛠️ Tech Stack
+- **Frontend**: ES Modules, Vanilla JS, CSS Grid/Flexbox
+- **Backend**: Node.js & Express
+- **Auth & Database**: Supabase (RLS Enabled)
+- **AI Engine**: Groq Cloud (Llama 3 8B)
+- **Deployment**: Vercel
 
 ---
 
